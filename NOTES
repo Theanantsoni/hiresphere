@@ -1,0 +1,4 @@
+Project Name : hiresphere
+
+commands:
+npx create-react-app hiresphere
