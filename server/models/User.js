@@ -8,6 +8,6 @@ const useSchema = new mongoose.Schema({
     image: {type:String, required:true}
 })
 
-const User = mongoose.Model('User', useSchema)
+const User = mongoose.model('User', useSchema)
 
 export default User;

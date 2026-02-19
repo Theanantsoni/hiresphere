@@ -1,7 +1,6 @@
 // Import with `import * as Sentry from "@sentry/node"` if you are using ESM
-import * as Sentry from "@sentry/node"
-import {nodeProfileIntegration} from "@sentry/profiling-node";
-import { Profiler } from "react";
+import * as Sentry from "@sentry/node";
+import { nodeProfilingIntegration } from "@sentry/profiling-node";
 
 Sentry.init({
   dsn: "https://8a1d23cf262bb6669f5cad7d1f5bab41@o4510914047049728.ingest.us.sentry.io/4510914050523136",
@@ -10,7 +9,8 @@ Sentry.init({
   sendDefaultPii: true,
 
   integrations: [
-    nodeProfileIntegration(),
+    
+    nodeProfilingIntegration(), 
     Sentry.mongooseIntegration()
   ],
 
