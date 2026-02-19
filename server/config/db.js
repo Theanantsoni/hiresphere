@@ -1,13 +1,12 @@
 import mongoose from "mongoose";
 
-//Function to connect to the MongoDB database
+const connectDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI);
+    console.log("MongoDB Connected");
+  } catch (error) {
+    console.error("MongoDB Connection Error:", error);
+  }
+};
 
-const connectDB = async() => {
-
-    mongoose.connection.on('connected', () => console.log('Database Connected'))
-
-    await mongoose.connect(`${process.env.MONGODB_URI}/hiresphere`)
-
-}
-
-export default connectDB
+export default connectDB;
