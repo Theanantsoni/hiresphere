@@ -1,67 +1,68 @@
 import { Webhook } from "svix";
 import User from "../models/User.js";
 
-//API Controller Function to Manage Clerk User with database
-
 export const clerkWebhooks = async (req, res) => {
-    try {
+  try {
+    console.log("🔥 Webhook route hit");
 
-        console.log("🔥 Webhook route hit");
-        console.log("Webhook received:", req.body);
+    // 1️⃣ Raw body ko string me convert karna zaroori hai
+    const payload = req.body.toString();
 
-        //Create a Svix instance with clerk webhook secret
-        const whook = new Webhook(process.env.CLERK_WEBHOOK_SECRET)
+    // 2️⃣ Svix instance
+    const whook = new Webhook(process.env.CLERK_WEBHOOK_SECRET);
 
-        //Verifying Header
-        await whook.verify(JSON.stringify(req.body), {
-            "svix-id": req.headers["svix-id"],
-            "svix-timestamp": req.headers["svix-timestamp"],
-            "svix-signature": req.headers["svix-signature"],
-        });
+    // 3️⃣ Verify webhook signature
+    await whook.verify(payload, {
+      "svix-id": req.headers["svix-id"],
+      "svix-timestamp": req.headers["svix-timestamp"],
+      "svix-signature": req.headers["svix-signature"],
+    });
 
-        //Getting Data from request body
+    // 4️⃣ Parse payload AFTER verification
+    const { data, type } = JSON.parse(payload);
 
-        const { data, type } = req.body
+    console.log("Event Type:", type);
 
-        //Switch Cases for different Events
+    // ===============================
+    //  USER CREATED
+    // ===============================
+    if (type === "user.created") {
+      await User.create({
+        _id: data.id,
+        email: data.email_addresses[0].email_address,
+        name: `${data.first_name || ""} ${data.last_name || ""}`,
+        image: data.image_url,
+        resume: "",
+      });
 
-        switch (type) {
-            case "user.created": {
-                const userData = {
-                    _id: data.id,
-                    email: data.email_addresses[0].email_address,
-                    name: `${data.first_name || ""} ${data.last_name || ""}`,
-                    image: data.image_url,
-                    resume: "",
-                };
-
-                await User.create(userData);
-                return res.status(200).json({ success: true });
-            }
-
-            case "user.updated": {
-                const userData = {
-                    email: data.email_addresses[0].email_address,
-                    name: `${data.first_name || ""} ${data.last_name || ""}`,
-                    image: data.image_url,
-                };
-
-                await User.findByIdAndUpdate(data.id, userData);
-                return res.status(200).json({ success: true });
-            }
-
-            case "user.deleted": {
-                await User.findByIdAndDelete(data.id);
-                return res.status(200).json({ success: true });
-            }
-
-            default:
-                return res.status(200).json({});
-        }
-
+      console.log("✅ User created in MongoDB");
     }
-    catch (error) {
-        console.log(error.message)
-        res.json({ success: false, message: 'Webhooks Error' })
+
+    // ===============================
+    //  USER UPDATED
+    // ===============================
+    if (type === "user.updated") {
+      await User.findByIdAndUpdate(data.id, {
+        email: data.email_addresses[0].email_address,
+        name: `${data.first_name || ""} ${data.last_name || ""}`,
+        image: data.image_url,
+      });
+
+      console.log("🔄 User updated in MongoDB");
     }
-}
+
+    // ===============================
+    //  USER DELETED
+    // ===============================
+    if (type === "user.deleted") {
+      await User.findByIdAndDelete(data.id);
+      console.log("❌ User deleted from MongoDB");
+    }
+
+    return res.status(200).json({ success: true });
+
+  } catch (error) {
+    console.log("❌ Webhook Error:", error.message);
+    return res.status(400).json({ success: false });
+  }
+};
