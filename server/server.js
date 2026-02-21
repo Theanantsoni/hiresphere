@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import "dotenv/config";
-import connectDB from "./config/db.js";
+// import connectDB from "./config/db.js";
 import * as Sentry from "@sentry/node";
 import { clerkWebhooks } from "./controller/webhooks.js";
 
@@ -15,7 +15,7 @@ Sentry.init({
 const app = express();
 
 // Connect to Database
-connectDB();
+// connectDB();
 
 // Middlewares
 app.use(cors());

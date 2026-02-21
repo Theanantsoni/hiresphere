@@ -1,68 +1,65 @@
 import { Webhook } from "svix";
 import User from "../models/User.js";
+import connectDB from "../config/db.js";
 
 export const clerkWebhooks = async (req, res) => {
   try {
     console.log("🔥 Webhook route hit");
 
-    // 1️⃣ Raw body ko string me convert karna zaroori hai
-    const payload = req.body.toString();
+    // Ensure DB connection (IMPORTANT FOR VERCEL)
+    await connectDB();
 
-    // 2️⃣ Svix instance
     const whook = new Webhook(process.env.CLERK_WEBHOOK_SECRET);
 
-    // 3️⃣ Verify webhook signature
-    await whook.verify(payload, {
+    const payload = req.body.toString(); // raw body
+    const headers = {
       "svix-id": req.headers["svix-id"],
       "svix-timestamp": req.headers["svix-timestamp"],
       "svix-signature": req.headers["svix-signature"],
-    });
+    };
 
-    // 4️⃣ Parse payload AFTER verification
-    const { data, type } = JSON.parse(payload);
+    const evt = whook.verify(payload, headers);
+
+    const { data, type } = evt;
 
     console.log("Event Type:", type);
 
-    // ===============================
-    //  USER CREATED
-    // ===============================
-    if (type === "user.created") {
-      await User.create({
-        _id: data.id,
-        email: data.email_addresses[0].email_address,
-        name: `${data.first_name || ""} ${data.last_name || ""}`,
-        image: data.image_url,
-        resume: "",
-      });
+    switch (type) {
+      case "user.created": {
+        await User.create({
+          _id: data.id,
+          email: data.email_addresses[0].email_address,
+          name: `${data.first_name || ""} ${data.last_name || ""}`,
+          image: data.image_url,
+          resume: "",
+        });
 
-      console.log("✅ User created in MongoDB");
-    }
+        console.log("✅ User created in MongoDB");
+        break;
+      }
 
-    // ===============================
-    //  USER UPDATED
-    // ===============================
-    if (type === "user.updated") {
-      await User.findByIdAndUpdate(data.id, {
-        email: data.email_addresses[0].email_address,
-        name: `${data.first_name || ""} ${data.last_name || ""}`,
-        image: data.image_url,
-      });
+      case "user.updated": {
+        await User.findByIdAndUpdate(data.id, {
+          email: data.email_addresses[0].email_address,
+          name: `${data.first_name || ""} ${data.last_name || ""}`,
+          image: data.image_url,
+        });
+        break;
+      }
 
-      console.log("🔄 User updated in MongoDB");
-    }
+      case "user.deleted": {
+        await User.findByIdAndDelete(data.id);
+        break;
+      }
 
-    // ===============================
-    //  USER DELETED
-    // ===============================
-    if (type === "user.deleted") {
-      await User.findByIdAndDelete(data.id);
-      console.log("❌ User deleted from MongoDB");
+      default:
+        break;
     }
 
     return res.status(200).json({ success: true });
 
   } catch (error) {
-    console.log("❌ Webhook Error:", error.message);
-    return res.status(400).json({ success: false });
+    console.error("❌ Webhook Error:", error.message);
+    return res.status(400).json({ error: "Webhook failed" });
   }
 };
