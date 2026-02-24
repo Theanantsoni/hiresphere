@@ -1,0 +1,109 @@
+Project Name : hiresphere
+
+commands:
+
+npx create-react-app hiresphere
+npm create vite@latest
+
+> hiresphere@0.1.0 npx
+> create-vite
+
+│
+◇  Project name:
+│  client
+│
+◇  Select a framework:
+│  React
+│
+◇  Select a variant:
+│  JavaScript
+│
+◇  Use rolldown-vite (Experimental)?:
+│  No
+│
+◇  Install with npm and start now?
+│  Yes
+│
+◇  Scaffolding project in D:\Mern Stack Projects\hiresphere\client...
+│
+◇  Installing dependencies with npm...
+
+cd client
+
+npm install
+
+npm run dev
+
+
+Install Tailwind CSS : 
+
+npm install -D tailwindcss postcss autoprefixer
+
+npx tailwindcss init -p 
+
+created file : tailwind.config.js , postcss.config.js
+
+create folderes : context , components, pages
+
+npm install react-router-dom
+
+npm install react-toastify
+
+npm install quill
+
+npm run dev
+
+npm install @clerk/clerk-react
+
+npm i k-convert // convert ex: 10,000 to 10K
+
+npm i moment // use for timestamp
+
+npm i quill //
+
+----------- Server ----------
+
+create server folder
+terminal -> npm init -y
+
+npm i express
+
+npm i jsonwebtoken //authentication for recruiter
+
+npm i bcrypt // help in encrypt the user password
+
+npm i mongoose nodemon svix // For connectiing with mongodb database and us enodemon for start server project
+
+npm i cors multer dotenv cloudinary 
+// cor for manage multiple origin 
+// multer help for manage form data 
+// dotenv manage environment variable 
+// cloudinary manage store users resume and company logo in cloudinary platform
+
+npm install @sentry/node --save //ExpressJs 
+
+Use of : Sentry, Clerk, Vercel, MongoDB Atlas, Cloudinary, Svix, React-Toastify, K-Convert, Moment, Quill - For CRUD Login data
+
+1.48 
+
+3.00
+
+4.10
+
+5.04
+
+5.45
+
+6.20
+
+8.05
+
+8.30 
+
+JobPost and show on mongodb complete
+
+
+
+
+
+
