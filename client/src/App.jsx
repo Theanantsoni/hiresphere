@@ -26,13 +26,18 @@ const App = () => {
         <Route path="/applications" element={<Application />} />
         {/* Nested Dashboard Routes */}
         <Route path="/dashboard" element={<Dashboard />}>
-          {companyToken ? (
-            <>
-              <Route path="add-jobs" element={<AddJob />} />
-              <Route path="manage-jobs" element={<ManageJobs />} />
-              <Route path="view-applications" element={<ViewApplications />} />
-            </>
-          ) : null}
+          <Route
+            path="add-jobs"
+            element={companyToken ? <AddJob /> : <Home />}
+          />
+          <Route
+            path="manage-jobs"
+            element={companyToken ? <ManageJobs /> : <Home />}
+          />
+          <Route
+            path="view-applications"
+            element={companyToken ? <ViewApplications /> : <Home />}
+          />
         </Route>
       </Routes>
     </div>
