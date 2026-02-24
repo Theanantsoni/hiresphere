@@ -67,44 +67,44 @@ export const registerCompany = async (req, res) => {
 
 // Company login
 export const companyLogin = async (req, res) => {
-  const { email, password } = req.body;
+    const { email, password } = req.body;
 
-  try {
-    const company = await Company.findOne({ email });
+    try {
+        const company = await Company.findOne({ email });
 
-    if (!company) {
-      return res.json({
-        success: false,
-        message: "Invalid email or password",
-      });
+        if (!company) {
+            return res.json({
+                success: false,
+                message: "Invalid email or password",
+            });
+        }
+
+        const isMatch = await bcrypt.compare(password, company.password);
+
+        if (!isMatch) {
+            return res.json({
+                success: false,
+                message: "Invalid email or password",
+            });
+        }
+
+        res.json({
+            success: true,
+            company: {
+                _id: company._id,
+                name: company.name,
+                email: company.email,
+                image: company.image,
+            },
+            token: generateToken(company._id),
+        });
+    } catch (error) {
+        console.log("Login Error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Server Error",
+        });
     }
-
-    const isMatch = await bcrypt.compare(password, company.password);
-
-    if (!isMatch) {
-      return res.json({
-        success: false,
-        message: "Invalid email or password",
-      });
-    }
-
-    res.json({
-      success: true,
-      company: {
-        _id: company._id,
-        name: company.name,
-        email: company.email,
-        image: company.image,
-      },
-      token: generateToken(company._id),
-    });
-  } catch (error) {
-    console.log("Login Error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Server Error",
-    });
-  }
 };
 
 // Get company data
@@ -201,20 +201,20 @@ export const changeVisibility = async (req, res) => {
     // Logic to change the visibility of a job posting
     // res.send('Job visibility changed successfully');
 
-    try{
-        const {id} = req.body
+    try {
+        const { id } = req.body
         const companyId = req.company._id
         const job = await Job.findById(id)
 
-        if(companyId.toString() === job.companyId.toString()){
-        
+        if (companyId.toString() === job.companyId.toString()) {
+
             job.visible = !job.visible
-        
+
         }
         await job.save()
-        res.json({success: true, job})
+        res.json({ success: true, job })
 
-    } catch(error){
+    } catch (error) {
         res.json({
             success: false,
             message: error.message

@@ -59,8 +59,12 @@ const Application = () => {
             <tr>
               <th className="py-3 px-4 border-b text-left">Company</th>
               <th className="py-3 px-4 border-b text-left">Job Title</th>
-              <th className="py-3 px-4 border-b text-left max-sm:hidden">Location</th>
-              <th className="py-3 px-4 border-b text-left max-sm:hidden">Date</th>
+              <th className="py-3 px-4 border-b text-left max-sm:hidden">
+                Location
+              </th>
+              <th className="py-3 px-4 border-b text-left max-sm:hidden">
+                Date
+              </th>
               <th className="py-3 px-4 border-b text-left">Status</th>
             </tr>
           </thead>
@@ -69,15 +73,21 @@ const Application = () => {
               true ? (
                 <tr>
                   <td className="py-3 px-4 flex items-center gap-2 border-b">
-                    <img src={job.logo} alt="" className="w-8 h-8"/>
+                    <img src={job.logo} alt="" className="w-8 h-8" />
                     {job.company}
                   </td>
                   <td className="py-2 px-4 border-b">{job.title}</td>
-                  <td className="py-2 px-4 border-b max-sm:hidden">{job.location}</td>
-                  <td className="py-2 px-4 border-b max-sm:hidden">{moment(job.date).format("ll")}</td>
+                  <td className="py-2 px-4 border-b max-sm:hidden">
+                    {job.location}
+                  </td>
+                  <td className="py-2 px-4 border-b max-sm:hidden">
+                    {moment(job.date).format("ll")}
+                  </td>
                   <td className="py-2 px-4 border-b">
-                    <span className={`${job.status === 'Accepted' ? 'bg-green-100' : job.status === 'Rejected' ? 'bg-red-100' : 'bg-blue-100'} px-4 py-1.5 rounded`}>
-                    {job.status}
+                    <span
+                      className={`${job.status === "Accepted" ? "bg-green-100" : job.status === "Rejected" ? "bg-red-100" : "bg-blue-100"} px-4 py-1.5 rounded`}
+                    >
+                      {job.status}
                     </span>
                   </td>
                 </tr>
@@ -86,7 +96,7 @@ const Application = () => {
           </tbody>
         </table>
       </div>
-      <Footer/>
+      <Footer />
     </>
   );
 };

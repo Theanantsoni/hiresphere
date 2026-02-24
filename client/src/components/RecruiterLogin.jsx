@@ -55,7 +55,7 @@ const RecruiterLogin = () => {
           formData,
         );
 
-        if (data.success) { 
+        if (data.success) {
           setCompanyData(data.company);
           setCompanyToken(data.token);
           localStorage.setItem("companytoken", data.token);

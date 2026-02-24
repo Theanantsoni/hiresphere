@@ -1,25 +1,24 @@
-import react, {useContext, useRef} from "react";
+import react, { useContext, useRef } from "react";
 import { assets } from "../assets/assets";
 import { AppContext } from "../context/AppContext";
 
 const Hero = () => {
+  const { setSearchFilter, setIsSearched } = useContext(AppContext);
 
-  const {setSearchFilter, setIsSearched} = useContext(AppContext)
-
-  const titleRef = useRef(null)
-  const locationRef = useRef(null)
+  const titleRef = useRef(null);
+  const locationRef = useRef(null);
 
   const onSearch = () => {
     setSearchFilter({
       title: titleRef.current.value,
-      location: locationRef.current.value
-    })
+      location: locationRef.current.value,
+    });
     setIsSearched(true);
     // console.log({
     //    title: titleRef.current.value,
     //   location: locationRef.current.value
     // });
-  }
+  };
 
   return (
     <div className="container 2xl:px-20 mx-auto my-10">
@@ -50,7 +49,12 @@ const Hero = () => {
               ref={locationRef}
             />
           </div>
-          <button onClick={onSearch} className="bg-blue-600 px-6 py-2 rounded text-white m-1">Submit</button>
+          <button
+            onClick={onSearch}
+            className="bg-blue-600 px-6 py-2 rounded text-white m-1"
+          >
+            Submit
+          </button>
         </div>
       </div>
       <div className="border border-gray-300 shadow-md mx-2 mt-5 p-6 rounded-md flex">

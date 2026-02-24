@@ -64,7 +64,6 @@ const ViewApplications = () => {
                     </div>
                   </div>
                 </td>
-                
               </tr>
             ))}
           </tbody>

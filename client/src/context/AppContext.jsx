@@ -3,12 +3,10 @@ import { jobsData } from "../assets/assets";
 import { toast } from "react-toastify";
 import axios from "axios";
 
-
 export const AppContext = createContext();
 
 export const AppContextProvider = (props) => {
-
-const backendUrl = import.meta.env.VITE_BACKEND_URL
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
   const [searchFilter, setSearchFilter] = useState({
     title: "",
@@ -33,48 +31,45 @@ const backendUrl = import.meta.env.VITE_BACKEND_URL
 
   //Function to fetch company data
 
-const fetchCompanyData = async () => {
-  try {
-    const { data } = await axios.get(
-      backendUrl + "/api/company/company",
-      { headers: { token: companyToken } }
-    );
+  const fetchCompanyData = async () => {
+    try {
+      const { data } = await axios.get(backendUrl + "/api/company/company", {
+        headers: { token: companyToken },
+      });
 
-    if (data.success) {
-      setCompanyData(data.company);
-      console.log(data);
-    } else {
-      toast.error(data.message);
+      if (data.success) {
+        setCompanyData(data.company);
+        console.log(data);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || error.message);
     }
-
-  } catch (error) {
-    toast.error(error.response?.data?.message || error.message);
-  }
-};
+  };
 
   useEffect(() => {
     fetchJobs();
 
-    const storedCompanyToken = localStorage.getItem('companytoken');
+    const storedCompanyToken = localStorage.getItem("companytoken");
 
-    if(storedCompanyToken){
+    if (storedCompanyToken) {
       setCompanyToken(storedCompanyToken);
     }
-
   }, []);
 
   useEffect(() => {
-  const token = localStorage.getItem("companytoken");
-  if (token) {
-    setCompanyToken(token);
-  }
-}, []);
+    const token = localStorage.getItem("companytoken");
+    if (token) {
+      setCompanyToken(token);
+    }
+  }, []);
 
-useEffect(() => {
-  if(companyToken){
-    fetchCompanyData();
-  }
-}, [companyToken])
+  useEffect(() => {
+    if (companyToken) {
+      fetchCompanyData();
+    }
+  }, [companyToken]);
 
   const value = {
     setSearchFilter,
@@ -89,7 +84,7 @@ useEffect(() => {
     setCompanyToken,
     companyData,
     setCompanyData,
-    backendUrl
+    backendUrl,
   };
 
   return (

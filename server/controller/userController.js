@@ -1,6 +1,6 @@
 import User from "../models/User.js"
 import JobApplication from "../models/JobApplication.js"
-import {v2 as cloudinary} from 'cloudinary'
+import { v2 as cloudinary } from 'cloudinary'
 
 // Get user data
 
@@ -11,11 +11,11 @@ export const getUserData = async (req, res) => {
     try {
         const user = await User.findById(userId)
 
-        if(!user){
-            return res.json({success: false, message: "User not found"})
+        if (!user) {
+            return res.json({ success: false, message: "User not found" })
         }
         res.json({
-            success: true, 
+            success: true,
             user
         })
 
@@ -34,12 +34,12 @@ export const applyForJob = async (req, res) => {
     const { jobId } = req.body
     const userId = req.auth.userId
 
-    try{
+    try {
         const isAlreadyApplied = await JobApplication.find({
             jobId, userId
         })
 
-        if(isAlreadyApplied.length > 0){
+        if (isAlreadyApplied.length > 0) {
             return res.json({
                 success: false,
                 message: "Already Applied"
@@ -48,7 +48,7 @@ export const applyForJob = async (req, res) => {
 
         const jobData = await Job.findById(jobId)
 
-        if(!jobData){
+        if (!jobData) {
             return res.json({
                 success: false,
                 message: "Job not found"
@@ -72,22 +72,22 @@ export const applyForJob = async (req, res) => {
             success: false,
             message: error.message
         })
-    
+
     }
 
 }
 
 // Get user applied applications
 
-export const getUserJobApplications = async(req, res) => {
-    try{
+export const getUserJobApplications = async (req, res) => {
+    try {
         const userId = req.auth.userId
-        const applications = await JobApplication.find({userId})
-        .populate("companyId", 'name email image')
-        .populate("jobId", "title description location category level salary")
-        .exex()
+        const applications = await JobApplication.find({ userId })
+            .populate("companyId", 'name email image')
+            .populate("jobId", "title description location category level salary")
+            .exex()
 
-        if(!applications){
+        if (!applications) {
             return res.json({
                 success: false,
                 message: "No Jobs applications found for this User"
@@ -97,7 +97,7 @@ export const getUserJobApplications = async(req, res) => {
             success: true,
             applications
         })
-    } catch(error){
+    } catch (error) {
         res.json({
             success: false,
             message: error.message
@@ -107,14 +107,14 @@ export const getUserJobApplications = async(req, res) => {
 
 // Update user profile (resume)
 
-export const updateUserResume = async(req, res) => {
-    try{
-        
+export const updateUserResume = async (req, res) => {
+    try {
+
         const userId = req.auth.userId
         const resumeFile = req.resumeFile
         const userData = await User.findById(userId)
 
-        if(resumeFile){
+        if (resumeFile) {
             const resumeUpload = await cloudinary.uploader.upload(resumeFile.path)
             userData.resume = resumeUpload.secure_url
         }
@@ -125,7 +125,7 @@ export const updateUserResume = async(req, res) => {
             message: "Resume updated successfully"
         })
 
-    } catch(error){
+    } catch (error) {
         res.json({
             success: false,
             message: error.message
