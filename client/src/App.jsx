@@ -1,44 +1,66 @@
 import React, { useContext } from "react";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, Navigate } from "react-router-dom";
+
 import ApplyJob from "./pages/ApplyJob";
 import Home from "./pages/Home";
 import Application from "./pages/Application";
 import RecruiterLogin from "./components/RecruiterLogin";
-import { AppContext } from "./context/AppContext";
 import Dashboard from "./pages/Dashboard";
 import AddJob from "./pages/AddJob";
 import ManageJobs from "./pages/ManageJobs";
 import ViewApplications from "./pages/ViewApplications";
+
+import { AppContext } from "./context/AppContext";
+
 import "quill/dist/quill.snow.css";
-import { ToastContainer, toast } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+
+// 🔐 Protected Route for Recruiter
+const RecruiterProtectedRoute = ({ children }) => {
+  const { companyToken } = useContext(AppContext);
+
+  if (!companyToken) {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+};
+
 const App = () => {
-  const { showRecruiterLogin, companyToken } = useContext(AppContext);
+  const { showRecruiterLogin } = useContext(AppContext);
+
   return (
     <div>
       {showRecruiterLogin && <RecruiterLogin />}
       <ToastContainer />
 
       <Routes>
+        {/* Public Routes */}
         <Route path="/" element={<Home />} />
         <Route path="/apply-job/:id" element={<ApplyJob />} />
         <Route path="/applications" element={<Application />} />
-        {/* Nested Dashboard Routes */}
-        <Route path="/dashboard" element={<Dashboard />}>
-          <Route
-            path="add-jobs"
-            element={companyToken ? <AddJob /> : <Home />}
-          />
-          <Route
-            path="manage-jobs"
-            element={companyToken ? <ManageJobs /> : <Home />}
-          />
-          <Route
-            path="view-applications"
-            element={companyToken ? <ViewApplications /> : <Home />}
-          />
+
+        {/* 🔐 Recruiter Dashboard Routes */}
+        <Route
+          path="/dashboard"
+          element={
+            <RecruiterProtectedRoute>
+              <Dashboard />
+            </RecruiterProtectedRoute>
+          }
+        >
+          {/* Default page when visiting /dashboard */}
+          <Route index element={<ManageJobs />} />
+
+          <Route path="add-jobs" element={<AddJob />} />
+          <Route path="manage-jobs" element={<ManageJobs />} />
+          <Route path="view-applications" element={<ViewApplications />} />
         </Route>
+
+        {/* Optional: Handle unknown routes */}
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </div>
   );

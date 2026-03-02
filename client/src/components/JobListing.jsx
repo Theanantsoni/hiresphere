@@ -160,7 +160,7 @@ const JobListing = () => {
           {filteredJobs
             .slice((currentPage - 1) * 6, currentPage * 6)
             .map((job, index) => (
-              <JobCards key={index} job={job} />
+              <JobCards key={job._id} job={job} />
             ))}
         </div>
 
@@ -170,23 +170,29 @@ const JobListing = () => {
           <div className="flex items-center justify-center space-x-2 mt-10">
             <a href="#job-list">
               <img
-                onClick={() => setCurrentPage(Math.max(currentPage - 1), 1)}
+                onClick={() => setCurrentPage(Math.max(currentPage - 1, 1))}
                 src={assets.left_arrow_icon}
                 alt=""
               />
             </a>
-            {Array.from({ length: Math.ceil(filteredJobs.length / 6) }).map(
-              (_, index) => (
-                <a href="#job-list">
-                  <button
-                    onClick={() => setCurrentPage(index + 1)}
-                    className={`w-10 h-10 flex items-center justify-center border cursor-pointer border-gray-300 rounded ${currentPage === index + 1 ? "bg-blue-100 text-blue-500" : "text-gray-500"}`}
-                  >
-                    {index + 1}
-                  </button>
-                </a>
-              ),
-            )}
+
+            {Array.from({
+              length: Math.ceil(filteredJobs.length / 6),
+            }).map((_, index) => (
+              <a href="#job-list" key={index}>
+                <button
+                  onClick={() => setCurrentPage(index + 1)}
+                  className={`w-10 h-10 flex items-center justify-center border cursor-pointer border-gray-300 rounded ${
+                    currentPage === index + 1
+                      ? "bg-blue-100 text-blue-500"
+                      : "text-gray-500"
+                  }`}
+                >
+                  {index + 1}
+                </button>
+              </a>
+            ))}
+
             <a href="#job-list">
               <img
                 onClick={() =>

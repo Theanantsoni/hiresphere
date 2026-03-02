@@ -20,12 +20,28 @@ const Navbar = () => {
           alt=""
         />
         {user ? (
-          <div className="flex items-center-center gap-3">
-            <Link to={"/Application"}>Applied Jobs</Link>
+          <div className="flex items-center gap-4">
+            {/* HOME BUTTON */}
+            <Link to="/" className="hover:text-blue-600 font-medium">
+              Home
+            </Link>
+
             <p>|</p>
+
+            {/* APPLIED JOBS */}
+            <Link
+              to="/applications"
+              className="hover:text-blue-600 font-medium"
+            >
+              Applied Jobs
+            </Link>
+
+            <p>|</p>
+
             <p className="max-sm:hidden">
               Hi, {user.firstName + " " + user.lastName}
             </p>
+
             <UserButton />
           </div>
         ) : (
