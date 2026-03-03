@@ -3,65 +3,80 @@ import { assets } from "../assets/assets";
 import { useClerk, UserButton, useUser } from "@clerk/clerk-react";
 import { Link, useNavigate } from "react-router-dom";
 import { AppContext } from "../context/AppContext";
+
 const Navbar = () => {
   const { openSignIn } = useClerk();
   const { user } = useUser();
   const navigate = useNavigate();
-
   const { setShowRecruiterLogin } = useContext(AppContext);
 
   return (
-    <div className="shadow py-4">
-      <div className="container px-4 2xl:px-20 mx-auto flex justify-between items-center">
-        <img
+    <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200 shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 2xl:px-20 h-20 flex justify-between items-center">
+
+        {/* LOGO */}
+        <div
           onClick={() => navigate("/")}
-          className="cursor-pointer"
-          src={assets.logo}
-          alt=""
-        />
+          className="flex items-center gap-2 cursor-pointer"
+        >
+          <img
+            src={assets.logo}
+            alt="HireSphere Logo"
+            className="h-18 w-auto object-contain"
+          />
+        </div>
+
+        {/* RIGHT SECTION */}
         {user ? (
-          <div className="flex items-center gap-4">
-            {/* HOME BUTTON */}
-            <Link to="/" className="hover:text-blue-600 font-medium">
+          <div className="flex items-center gap-8 text-gray-700 font-medium">
+
+            <Link
+              to="/"
+              className="relative group hover:text-blue-600 transition"
+            >
               Home
+              <span className="absolute left-0 -bottom-1 w-0 h-0.5 bg-blue-600 transition-all group-hover:w-full"></span>
             </Link>
 
-            <p>|</p>
-
-            {/* APPLIED JOBS */}
             <Link
               to="/applications"
-              className="hover:text-blue-600 font-medium"
+              className="relative group hover:text-blue-600 transition"
             >
               Applied Jobs
+              <span className="absolute left-0 -bottom-1 w-0 h-0.5 bg-blue-600 transition-all group-hover:w-full"></span>
             </Link>
 
-            <p>|</p>
+            <div className="hidden sm:block text-sm text-gray-500">
+              Hi,{" "}
+              <span className="font-semibold text-gray-700">
+                {user.firstName} {user.lastName}
+              </span>
+            </div>
 
-            <p className="max-sm:hidden">
-              Hi, {user.firstName + " " + user.lastName}
-            </p>
+            <UserButton afterSignOutUrl="/" />
 
-            <UserButton />
           </div>
         ) : (
-          <div className="flex gap-4 max:sm:text-xs">
+          <div className="flex items-center gap-6">
+
             <button
-              onClick={(e) => setShowRecruiterLogin(true)}
-              className="text-gray-600"
+              onClick={() => setShowRecruiterLogin(true)}
+              className="text-gray-600 hover:text-blue-600 transition font-medium"
             >
               Recruiter Login
             </button>
+
             <button
-              onClick={(e) => openSignIn()}
-              className="bg-blue-600 text-white px-6 sm:px-9 py-2 rounded-full"
+              onClick={() => openSignIn()}
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-lg transition text-white px-6 py-2 rounded-full font-medium"
             >
               Login
             </button>
+
           </div>
         )}
       </div>
-    </div>
+    </header>
   );
 };
 

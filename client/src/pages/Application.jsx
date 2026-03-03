@@ -2,12 +2,14 @@ import React, { useContext, useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import moment from "moment";
+import { useUser } from "@clerk/clerk-react";
 import { useAuth } from "@clerk/clerk-react";
 import { AppContext } from "../context/AppContext";
 import axios from "axios";
 import { toast } from "react-toastify";
 
 const Application = () => {
+  const { user } = useUser();
   const { getToken } = useAuth();
   const [isEdit, setIsEdit] = useState(false);
   const [resume, setResume] = useState(null);
@@ -26,8 +28,8 @@ const Application = () => {
 
   useEffect(() => {
     const loadData = async () => {
-      if (authLoading) return;        // wait for Clerk
-      if (!userData) return;          // wait for user
+      if (authLoading) return; // wait for Clerk
+      if (!userData) return; // wait for user
 
       await fetchUserApplications();
       setLoading(false);
@@ -35,6 +37,12 @@ const Application = () => {
 
     loadData();
   }, [authLoading, userData]);
+
+  useEffect(() => {
+    if (user) {
+      fetchUserApplications();
+    }
+  }, [user]);
 
   /* ================= UPDATE RESUME ================= */
 
@@ -56,7 +64,7 @@ const Application = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       if (data.success) {
@@ -75,7 +83,6 @@ const Application = () => {
       <Navbar />
 
       <div className="container px-4 min-h-[65vh] 2xl:px-20 mx-auto my-10">
-
         {/* ================= RESUME SECTION ================= */}
 
         <h2 className="text-xl font-semibold">Your Resume</h2>
@@ -124,16 +131,12 @@ const Application = () => {
 
         {/* ================= APPLIED JOBS ================= */}
 
-        <h2 className="text-xl font-semibold mb-4">
-          Jobs Applied
-        </h2>
+        <h2 className="text-xl font-semibold mb-4">Jobs Applied</h2>
 
         {authLoading || loading ? (
           <p>Loading...</p>
         ) : userApplications.length === 0 ? (
-          <p className="text-gray-500">
-            No applications found
-          </p>
+          <p className="text-gray-500">No applications found</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full border border-gray-200 rounded-lg overflow-hidden">
@@ -159,20 +162,26 @@ const Application = () => {
                       {item.companyId?.name}
                     </td>
 
-                    <td className="px-4 py-3">
-                      {item.jobId?.title}
-                    </td>
+                    <td className="px-4 py-3">{item.jobId?.title}</td>
 
-                    <td className="px-4 py-3">
-                      {item.jobId?.location}
-                    </td>
+                    <td className="px-4 py-3">{item.jobId?.location}</td>
 
                     <td className="px-4 py-3">
                       {moment(item.date).format("MMM DD, YYYY")}
                     </td>
 
                     <td className="px-4 py-3">
-                      <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm">
+                      <span
+                        className={`px-3 py-1 rounded text-sm font-medium
+                              ${
+                                (item.status || "Pending") === "Accepted"
+                                  ? "bg-green-100 text-green-700"
+                                  : (item.status || "Pending") === "Rejected"
+                                    ? "bg-red-100 text-red-700"
+                                    : "bg-blue-100 text-blue-700"
+                              }
+                            `}
+                      >
                         {item.status || "Pending"}
                       </span>
                     </td>
@@ -182,7 +191,6 @@ const Application = () => {
             </table>
           </div>
         )}
-
       </div>
 
       <Footer />

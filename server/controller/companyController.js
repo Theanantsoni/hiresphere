@@ -4,6 +4,8 @@ import JobApplication from "../models/JobApplication.js";
 import bcrypt from "bcrypt";
 import cloudinary from "../config/cloudinary.js";
 import generateToken from "../utils/generateToken.js";
+import User from "../models/User.js";
+import mongoose from "mongoose";
 
 /* ================= REGISTER COMPANY ================= */
 
@@ -152,22 +154,39 @@ export const postJob = async (req, res) => {
   }
 };
 
-/* ================= GET COMPANY POSTED JOBS ================= */
-
 export const getCompanyPostedJobs = async (req, res) => {
   try {
+    const companyId = req.companyId;
+
     const jobs = await Job.find({
-      companyId: req.companyId,
+      companyId,
     }).sort({ date: -1 });
+
+    const jobsWithCount = await Promise.all(
+      jobs.map(async (job) => {
+        const applicantCount = await JobApplication.countDocuments({
+          jobId: job._id,
+          companyId: companyId,
+          status: "Pending",
+        });
+
+        return {
+          ...job._doc,
+          applicantCount,
+        };
+      })
+    );
 
     res.json({
       success: true,
-      jobsData: jobs,
+      jobsData: jobsWithCount,
     });
+
   } catch (error) {
+    console.log(error);
     res.json({
       success: false,
-      message: error.message,
+      message: "Server Error",
     });
   }
 };
@@ -176,18 +195,35 @@ export const getCompanyPostedJobs = async (req, res) => {
 
 export const getJobApplicants = async (req, res) => {
   try {
+
     const applications = await JobApplication.find({
       companyId: req.companyId,
-    })
-      .populate("userId", "name email resume")
-      .populate("jobId", "title location");
+    }).populate("jobId", "title location category level salary");
 
-    res.json({
-      success: true,
-      applications,
+    // 🔥 Get all users in one query
+    const users = await User.find({
+      clerkId: { $in: applications.map(app => app.userId) }
     });
+
+    // 🔥 Create lookup map
+    const userMap = {};
+    users.forEach(user => {
+      userMap[user.clerkId] = user;
+    });
+
+    // 🔥 Attach user object
+    const enrichedApplications = applications.map(app => ({
+      ...app._doc,
+      userId: userMap[app.userId]
+    }));
+
+    return res.json({
+      success: true,
+      applications: enrichedApplications,
+    });
+
   } catch (error) {
-    res.json({
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
@@ -200,27 +236,15 @@ export const changeApplicationStatus = async (req, res) => {
   try {
     const { id, status } = req.body;
 
-    const application = await JobApplication.findById(id);
+    if (!id || !status)
+      return res.status(400).json({ success: false, message: "Missing data" });
 
-    if (!application) {
-      return res.json({
-        success: false,
-        message: "Application not found",
-      });
-    }
+    await JobApplication.findByIdAndUpdate(id, { status });
 
-    application.status = status;
-    await application.save();
+    res.json({ success: true, message: "Status Changed" });
 
-    res.json({
-      success: true,
-      message: "Application status updated",
-    });
   } catch (error) {
-    res.json({
-      success: false,
-      message: error.message,
-    });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 

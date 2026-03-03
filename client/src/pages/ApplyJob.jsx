@@ -1,7 +1,6 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { AppContext } from "../context/AppContext";
-import { assets } from "../assets/assets";
 import Loading from "../components/Loading";
 import Navbar from "../components/Navbar";
 import kconvert from "k-convert";
@@ -18,11 +17,11 @@ const ApplyJob = () => {
   const { getToken } = useAuth();
 
   const {
-    jobs,
+    jobs = [],
     backendUrl,
     userData,
     authLoading,
-    userApplications,
+    userApplications = [],
     fetchUserApplications,
   } = useContext(AppContext);
 
@@ -47,16 +46,29 @@ const ApplyJob = () => {
     if (id) fetchJob();
   }, [id]);
 
+  /* ================= FETCH APPLICATIONS ================= */
+
+  useEffect(() => {
+    if (userData) {
+      fetchUserApplications();
+    }
+  }, [userData]);
+
+  /* ================= MEMOIZED APPLIED IDS ================= */
+
+  const appliedIds = useMemo(() => {
+    return new Set(
+      (userApplications || []).map((app) => app?.jobId?._id)
+    );
+  }, [userApplications]);
+
   /* ================= CHECK ALREADY APPLIED ================= */
 
   useEffect(() => {
-    if (userApplications && userApplications.length > 0) {
-      const applied = userApplications.some(
-        (application) => application.jobId?._id === id
-      );
-      setIsAlreadyApplied(applied);
+    if (id) {
+      setIsAlreadyApplied(appliedIds.has(id));
     }
-  }, [userApplications, id]);
+  }, [appliedIds, id]);
 
   /* ================= APPLY HANDLER ================= */
 
@@ -76,15 +88,13 @@ const ApplyJob = () => {
         `${backendUrl}/api/users/apply`,
         { jobId: id },
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
 
       if (data.success) {
         toast.success("Applied successfully");
-        fetchUserApplications(); // refresh applications
+        fetchUserApplications();
         setIsAlreadyApplied(true);
       } else if (data.message === "Already Applied") {
         toast.info("Already Applied");
@@ -95,104 +105,151 @@ const ApplyJob = () => {
     }
   };
 
-  if (loading) return <Loading />;
-  if (!jobData) return <Loading />;
+  if (loading || !jobData) return <Loading />;
 
   return (
     <>
       <Navbar />
 
-      <div className="min-h-screen flex flex-col py-10 container px-4 2xl:px-20 mx-auto">
-        <div className="bg-white text-black rounded-lg w-full">
+      <div className="min-h-screen bg-gray-50 py-10 px-4 2xl:px-20">
+        <div className="max-w-7xl mx-auto">
 
-          {/* ================= TOP SECTION ================= */}
+          {/* ================= JOB HEADER ================= */}
 
-          <div className="flex justify-between flex-wrap gap-8 px-8 md:px-14 py-14 mb-6 bg-sky-50 border border-sky-400 rounded-xl">
-            <div className="flex flex-col md:flex-row items-center">
-              <img
-                className="h-24 bg-white rounded-lg p-4 mr-4 border"
-                src={jobData.companyId?.image}
-                alt=""
-              />
+          <div className="bg-white shadow-xl rounded-2xl p-8 mb-10 border border-gray-100 hover:shadow-2xl transition">
 
-              <div>
-                <h1 className="text-2xl sm:text-4xl font-medium">
-                  {jobData.title}
-                </h1>
+            <div className="flex flex-col lg:flex-row justify-between gap-8">
 
-                <div className="flex flex-wrap gap-6 items-center text-gray-600 mt-2">
-                  <span className="flex items-center gap-1">
-                    <img src={assets.suitcase_icon} alt="" />
-                    {jobData.companyId?.name}
-                  </span>
+              <div className="flex gap-5">
+                <img
+                  className="h-24 w-24 object-contain bg-gray-50 p-4 rounded-xl border"
+                  src={jobData?.companyId?.image}
+                  alt=""
+                />
 
-                  <span className="flex items-center gap-1">
-                    <img src={assets.location_icon} alt="" />
-                    {jobData.location}
-                  </span>
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-800">
+                    {jobData?.title}
+                  </h1>
 
-                  <span className="flex items-center gap-1">
-                    <img src={assets.person_icon} alt="" />
-                    {jobData.level}
-                  </span>
+                  <div className="flex flex-wrap gap-3 mt-4 text-sm">
 
-                  <span className="flex items-center gap-1">
-                    <img src={assets.money_icon} alt="" />
-                    CTC: {kconvert.convertTo(jobData.salary)}
-                  </span>
+                    <span className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full font-medium">
+                      {jobData?.companyId?.name}
+                    </span>
+
+                    <span className="bg-gray-100 px-3 py-1 rounded-full">
+                      📍 {jobData?.location}
+                    </span>
+
+                    <span className="bg-gray-100 px-3 py-1 rounded-full">
+                      🎯 {jobData?.level}
+                    </span>
+
+                    <span className="bg-green-50 text-green-600 px-3 py-1 rounded-full font-semibold">
+                      💰 {kconvert.convertTo(jobData?.salary)}
+                    </span>
+
+                  </div>
+
+                  <p className="mt-4 text-gray-400 text-sm">
+                    Posted {moment(jobData?.date).fromNow()}
+                  </p>
                 </div>
               </div>
-            </div>
 
-            <div className="flex flex-col justify-center text-end">
-              <button
-                onClick={applyHandler}
-                className={`p-2.5 px-10 text-white rounded ${
-                  isAlreadyApplied
-                    ? "bg-gray-500 cursor-not-allowed"
-                    : "bg-blue-600"
-                }`}
-              >
-                {isAlreadyApplied ? "Already Applied" : "Apply Now"}
-              </button>
+              <div className="flex flex-col justify-center items-start lg:items-end">
+                <button
+                  disabled={isAlreadyApplied}
+                  onClick={!isAlreadyApplied ? applyHandler : undefined}
+                  className={`px-12 py-3 rounded-xl text-white font-semibold transition-all duration-300 transform
+                  ${
+                    isAlreadyApplied
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:scale-105 hover:shadow-lg"
+                  }`}
+                >
+                  {isAlreadyApplied ? "Already Applied" : "Apply Now"}
+                </button>
+              </div>
 
-              <p className="mt-1 text-gray-600">
-                Posted {moment(jobData.date).fromNow()}
-              </p>
             </div>
           </div>
 
-          {/* ================= DESCRIPTION ================= */}
+          {/* ================= MAIN GRID ================= */}
 
-          <div>
-            <h2 className="font-bold text-2xl mb-4">
-              Job Description
-            </h2>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
 
-            <div
-              dangerouslySetInnerHTML={{
-                __html: jobData.description,
-              }}
-            />
-          </div>
+            {/* LEFT DESCRIPTION */}
+            <div className="lg:col-span-2 bg-white rounded-2xl shadow-md p-8 border border-gray-100">
 
-          {/* ================= MORE JOBS ================= */}
+              <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-3">
+                Job Description
+              </h2>
 
-          <div className="mt-10">
-            <h2 className="text-lg font-semibold mb-4">
-              More jobs from {jobData.companyId?.name}
-            </h2>
+              <div
+                className="prose max-w-none text-gray-700"
+                dangerouslySetInnerHTML={{
+                  __html: jobData?.description,
+                }}
+              />
+            </div>
 
-            {jobs
-              .filter(
-                (job) =>
-                  job._id !== jobData._id &&
-                  job.companyId?._id === jobData.companyId?._id
-              )
-              .slice(0, 4)
-              .map((job) => (
-                <JobCards key={job._id} job={job} />
-              ))}
+            {/* RIGHT SIDEBAR */}
+            <div className="space-y-6">
+
+              <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100 sticky top-24 hidden lg:block">
+                <h3 className="font-semibold text-lg mb-4">
+                  Quick Apply
+                </h3>
+
+                <button
+                  disabled={isAlreadyApplied}
+                  onClick={!isAlreadyApplied ? applyHandler : undefined}
+                  className={`w-full py-3 rounded-xl text-white font-semibold transition-all duration-300
+                  ${
+                    isAlreadyApplied
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-lg"
+                  }`}
+                >
+                  {isAlreadyApplied ? "Already Applied" : "Apply Now"}
+                </button>
+
+                <p className="text-xs text-gray-400 mt-3">
+                  Make sure your resume is updated.
+                </p>
+              </div>
+
+              <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100">
+
+                <h2 className="text-lg font-semibold mb-5">
+                  More jobs from {jobData?.companyId?.name}
+                </h2>
+
+                <div className="space-y-4">
+
+                  {jobs
+                    ?.filter(
+                      (job) =>
+                        job?._id !== jobData?._id &&
+                        job?.companyId?._id === jobData?.companyId?._id
+                    )
+                    ?.filter((job) => !appliedIds.has(job?._id))
+                    ?.slice(0, 4)
+                    ?.map((job) => (
+                      <div
+                        key={job?._id}
+                        className="transition transform hover:-translate-y-1 hover:shadow-md rounded-xl"
+                      >
+                        <JobCards job={job} />
+                      </div>
+                    ))}
+
+                </div>
+              </div>
+
+            </div>
           </div>
 
         </div>
