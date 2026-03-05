@@ -6,7 +6,7 @@ import Home from "./pages/Home";
 import Application from "./pages/Application";
 import RecruiterLogin from "./components/RecruiterLogin";
 
-import Dashboard from "./pages/Dashboard";   // ✅ Layout
+import Dashboard from "./pages/Dashboard"; // ✅ Layout
 import DashboardHome from "./pages/DashboardHome"; // ✅ Page
 
 import AddJob from "./pages/AddJob";
@@ -18,6 +18,8 @@ import { AppContext } from "./context/AppContext";
 import "quill/dist/quill.snow.css";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
+import CompanyProfile from "./pages/CompanyProfile";
 
 const RecruiterProtectedRoute = ({ children }) => {
   const { companyToken, authLoading } = useContext(AppContext);
@@ -50,7 +52,7 @@ const App = () => {
           path="/dashboard"
           element={
             <RecruiterProtectedRoute>
-              <Dashboard />   {/* ✅ Layout */}
+              <Dashboard /> {/* ✅ Layout */}
             </RecruiterProtectedRoute>
           }
         >
@@ -60,6 +62,7 @@ const App = () => {
           <Route path="add-jobs" element={<AddJob />} />
           <Route path="manage-jobs" element={<ManageJobs />} />
           <Route path="view-applications" element={<ViewApplications />} />
+          <Route path="profile" element={<CompanyProfile />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" />} />

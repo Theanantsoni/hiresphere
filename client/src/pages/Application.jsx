@@ -151,42 +151,44 @@ const Application = () => {
               </thead>
 
               <tbody>
-                {userApplications.map((item) => (
-                  <tr key={item._id} className="border-t hover:bg-gray-50">
-                    <td className="px-4 py-3 flex items-center gap-2">
-                      <img
-                        src={item.companyId?.image}
-                        className="h-6 w-6 rounded"
-                        alt=""
-                      />
-                      {item.companyId?.name}
-                    </td>
+                {userApplications
+                  .sort((a, b) => new Date(b.date) - new Date(a.date)) // latest first
+                  .map((item) => (
+                    <tr key={item._id} className="border-t hover:bg-gray-50">
+                      <td className="px-4 py-3 flex items-center gap-2">
+                        <img
+                          src={item.companyId?.image}
+                          className="h-6 w-6 rounded"
+                          alt=""
+                        />
+                        {item.companyId?.name}
+                      </td>
 
-                    <td className="px-4 py-3">{item.jobId?.title}</td>
+                      <td className="px-4 py-3">{item.jobId?.title}</td>
 
-                    <td className="px-4 py-3">{item.jobId?.location}</td>
+                      <td className="px-4 py-3">{item.jobId?.location}</td>
 
-                    <td className="px-4 py-3">
-                      {moment(item.date).format("MMM DD, YYYY")}
-                    </td>
+                      <td className="px-4 py-3">
+                        {moment(item.date).format("MMM DD, YYYY")}
+                      </td>
 
-                    <td className="px-4 py-3">
-                      <span
-                        className={`px-3 py-1 rounded text-sm font-medium
-                              ${
-                                (item.status || "Pending") === "Accepted"
-                                  ? "bg-green-100 text-green-700"
-                                  : (item.status || "Pending") === "Rejected"
-                                    ? "bg-red-100 text-red-700"
-                                    : "bg-blue-100 text-blue-700"
-                              }
-                            `}
-                      >
-                        {item.status || "Pending"}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
+                      <td className="px-4 py-3">
+                        <span
+                          className={`px-3 py-1 rounded text-sm font-medium
+              ${
+                (item.status || "Pending") === "Accepted"
+                  ? "bg-green-100 text-green-700"
+                  : (item.status || "Pending") === "Rejected"
+                    ? "bg-red-100 text-red-700"
+                    : "bg-blue-100 text-blue-700"
+              }
+            `}
+                        >
+                          {item.status || "Pending"}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>

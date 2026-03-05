@@ -6,14 +6,12 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  MapPin,
   BarChart3,
 } from "lucide-react";
 
 const DashboardHome = () => {
   const { companyData } = useContext(AppContext);
 
-  // Dummy data (later backend se connect karenge)
   const stats = {
     totalJobs: 12,
     activeJobs: 9,
@@ -24,42 +22,33 @@ const DashboardHome = () => {
     rejected: 14,
   };
 
-  const topCategories = [
-    { name: "IT & Software", count: 6 },
-    { name: "Marketing", count: 3 },
-    { name: "Design", count: 2 },
-  ];
-
-  const topCities = [
-    { name: "Ahmedabad", count: 5 },
-    { name: "Mumbai", count: 3 },
-    { name: "Delhi", count: 2 },
-  ];
-
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
 
-      {/* ===== HERO SECTION ===== */}
+      {/* HERO SECTION */}
       <div className="flex flex-col md:flex-row items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-8 rounded-2xl shadow-lg">
+
         <div>
           <h2 className="text-3xl font-bold mb-2">
             Welcome back, {companyData?.name}
           </h2>
-          <p className="opacity-90">
-            Here's what's happening with your job postings today.
+          <p className="opacity-90 text-sm">
+            Manage your jobs and applicants easily.
           </p>
         </div>
 
         {companyData?.image && (
-          <img
-            src={companyData.image}
-            alt=""
-            className="w-20 h-20 rounded-full border-4 border-white shadow-lg mt-4 md:mt-0"
-          />
+          <div className="w-24 h-16 flex items-center justify-center bg-white rounded-lg overflow-hidden mt-4 md:mt-0">
+            <img
+              src={companyData.image}
+              alt="company"
+              className="w-full h-full object-contain"
+            />
+          </div>
         )}
       </div>
 
-      {/* ===== STAT CARDS ===== */}
+      {/* STAT CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
         <StatCard
@@ -72,7 +61,7 @@ const DashboardHome = () => {
 
         <StatCard
           icon={<Users size={22} />}
-          title="Total Applicants"
+          title="Applicants"
           value={stats.totalApplicants}
           bg="bg-green-100"
           text="text-green-600"
@@ -93,10 +82,9 @@ const DashboardHome = () => {
           bg="bg-emerald-100"
           text="text-emerald-600"
         />
-
       </div>
 
-      {/* ===== VISIBILITY & STATUS ===== */}
+      {/* JOB STATUS */}
       <div className="grid md:grid-cols-2 gap-8">
 
         {/* Job Visibility */}
@@ -120,10 +108,10 @@ const DashboardHome = () => {
           />
         </div>
 
-        {/* Application Status */}
+        {/* Applications */}
         <div className="bg-white rounded-2xl shadow-md p-6">
           <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
-            <Users size={20} /> Applications Status
+            <Users size={20} /> Applications
           </h3>
 
           <StatusItem
@@ -149,50 +137,17 @@ const DashboardHome = () => {
         </div>
       </div>
 
-      {/* ===== CATEGORIES & CITIES ===== */}
-      <div className="grid md:grid-cols-2 gap-8">
-
-        {/* Categories */}
-        <div className="bg-white rounded-2xl shadow-md p-6">
-          <h3 className="text-lg font-semibold mb-4">Top Categories</h3>
-          {topCategories.map((cat, index) => (
-            <div
-              key={index}
-              className="flex justify-between bg-gray-50 px-4 py-3 rounded-lg mb-3"
-            >
-              <span>{cat.name}</span>
-              <span className="font-semibold">{cat.count}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* Cities */}
-        <div className="bg-white rounded-2xl shadow-md p-6">
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <MapPin size={18} /> Top Hiring Cities
-          </h3>
-          {topCities.map((city, index) => (
-            <div
-              key={index}
-              className="flex justify-between bg-gray-50 px-4 py-3 rounded-lg mb-3"
-            >
-              <span>{city.name}</span>
-              <span className="font-semibold">{city.count}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
     </div>
   );
 };
 
 export default DashboardHome;
 
-/* ===== COMPONENTS ===== */
+
+/* COMPONENTS */
 
 const StatCard = ({ icon, title, value, bg, text }) => (
-  <div className="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition transform hover:-translate-y-1">
+  <div className="bg-white p-6 rounded-2xl shadow-md hover:shadow-lg transition">
     <div className={`w-10 h-10 flex items-center justify-center rounded-lg ${bg} ${text} mb-4`}>
       {icon}
     </div>
@@ -205,14 +160,15 @@ const ProgressBar = ({ label, value, total, color }) => {
   const percentage = total ? (value / total) * 100 : 0;
 
   return (
-    <div className="mb-6">
+    <div className="mb-5">
       <div className="flex justify-between mb-1 text-sm">
         <span>{label}</span>
         <span>{value}</span>
       </div>
+
       <div className="w-full bg-gray-200 h-2 rounded-full">
         <div
-          className={`${color} h-2 rounded-full transition-all duration-500`}
+          className={`${color} h-2 rounded-full`}
           style={{ width: `${percentage}%` }}
         />
       </div>

@@ -1,32 +1,59 @@
-import express from 'express';
-import { changeApplicationStatus, changeVisibility, companyLogin, getCompanyData, getCompanyPostedJobs, getJobApplicants, postJob, registerCompany } from '../controller/companyController.js';
-import upload from '../config/multer.js';
-import { protectCompany } from '../middleware/authMiddleware.js';
+import express from "express";
+
+import {
+  registerCompany,
+  verifyCompanyOtp,
+  companyLogin,
+  getCompanyData,
+  postJob,
+  getCompanyPostedJobs,
+  getJobApplicants,
+  changeApplicationStatus,
+  changeVisibility,
+} from "../controller/companyController.js";
+
+import upload from "../config/multer.js";
+import { protectCompany } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// Register a company
-router.post('/register', upload.single('image'), registerCompany);
+/* ================= AUTH ROUTES ================= */
 
-// Company login
-router.post('/login', companyLogin);
+// Register Company (Send OTP)
+router.post("/register", upload.single("image"), registerCompany);
 
-// Get company data
-router.get('/company', protectCompany, getCompanyData);
+// Verify Email OTP
+router.post("/verify-otp", verifyCompanyOtp);
 
-// Post a new job   
-router.post('/post-job', protectCompany, postJob);
+// Company Login
+router.post("/login", companyLogin);
 
-// Get job applicants data of company
-router.get('/applicants', protectCompany, getJobApplicants);
 
-// Get Company Job List
-router.get('/list-jobs', protectCompany, getCompanyPostedJobs);
+/* ================= COMPANY DATA ================= */
 
-// Change Job Application Status
-router.post('/change-status', protectCompany, changeApplicationStatus);
+// Get company profile data
+router.get("/company", protectCompany, getCompanyData);
 
-// Change applications visibility
-router.post('/change-visibility', protectCompany, changeVisibility);
+
+/* ================= JOB MANAGEMENT ================= */
+
+// Post new job
+router.post("/post-job", protectCompany, postJob);
+
+// Get company posted jobs
+router.get("/list-jobs", protectCompany, getCompanyPostedJobs);
+
+// Get applicants for company jobs
+router.get("/applicants", protectCompany, getJobApplicants);
+
+
+/* ================= JOB ACTIONS ================= */
+
+// Change application status
+router.post("/change-status", protectCompany, changeApplicationStatus);
+
+// Toggle job visibility
+router.post("/change-visibility", protectCompany, changeVisibility);
+
 
 export default router;

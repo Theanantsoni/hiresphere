@@ -5,88 +5,147 @@ import bcrypt from "bcrypt";
 import cloudinary from "../config/cloudinary.js";
 import generateToken from "../utils/generateToken.js";
 import User from "../models/User.js";
-import mongoose from "mongoose";
+import sendEmail from "../utils/sendEmail.js";
 
 /* ================= REGISTER COMPANY ================= */
 
 export const registerCompany = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
-    const imageFile = req.file;
+
+    const { name, email, password } = req.body
+    const imageFile = req.file
 
     if (!name || !email || !password || !imageFile) {
       return res.status(400).json({
-        success: false,
-        message: "All fields including image are required",
-      });
+        success:false,
+        message:"All fields including image are required"
+      })
     }
 
-    const companyExists = await Company.findOne({ email });
+    const companyExists = await Company.findOne({ email })
 
     if (companyExists) {
       return res.status(400).json({
-        success: false,
-        message: "Company already registered",
-      });
+        success:false,
+        message:"Company already registered"
+      })
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const imageUpload = await cloudinary.uploader.upload(imageFile.path,{
+      folder:"hiresphere_companies"
+    })
 
-    const imageUpload = await cloudinary.uploader.upload(imageFile.path, {
-      folder: "hiresphere_companies",
-    });
+    const hashedPassword = await bcrypt.hash(password,10)
+
+    const otp = Math.floor(100000 + Math.random()*900000).toString()
+
+    await sendEmail(
+      email,
+      "HireSphere Email Verification",
+      `Your OTP is ${otp}`
+    )
+
+    res.json({
+      success:true,
+      otp,
+      tempCompany:{
+        name,
+        email,
+        password:hashedPassword,
+        image:imageUpload.secure_url
+      }
+    })
+
+  } catch(error){
+
+    res.status(500).json({
+      success:false,
+      message:error.message
+    })
+
+  }
+}
+
+/* ================= VERIFY COMPANY OTP ================= */
+
+export const verifyCompanyOtp = async (req,res)=>{
+
+  try{
+
+    const { otp,userOtp,tempCompany } = req.body
+
+    if(otp !== userOtp){
+      return res.status(400).json({
+        success:false,
+        message:"Invalid OTP"
+      })
+    }
 
     const company = await Company.create({
-      name,
-      email,
-      password: hashedPassword,
-      image: imageUpload.secure_url,
-    });
+      name: tempCompany.name,
+      email: tempCompany.email,
+      password: tempCompany.password,
+      image: tempCompany.image,
+      isVerified:true
+    })
 
-    res.status(201).json({
-      success: true,
-      company: {
+    res.json({
+      success:true,
+      token: generateToken(company._id),
+      company:{
         _id: company._id,
         name: company.name,
         email: company.email,
         image: company.image,
-      },
-      token: generateToken(company._id),
-    });
-  } catch (error) {
+        createdAt: company.createdAt
+      }
+    })
+
+  }catch(error){
+
     res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+      success:false,
+      message:error.message
+    })
+
   }
-};
+
+}
+
 
 /* ================= COMPANY LOGIN ================= */
 
 export const companyLogin = async (req, res) => {
   try {
+
     const { email, password } = req.body;
 
     const company = await Company.findOne({ email });
 
     if (!company) {
-      return res.json({
+      return res.status(401).json({
         success: false,
         message: "Invalid email or password",
+      });
+    }
+
+    if (!company.isVerified) {
+      return res.status(403).json({
+        success: false,
+        message: "Please verify your email first",
       });
     }
 
     const isMatch = await bcrypt.compare(password, company.password);
 
     if (!isMatch) {
-      return res.json({
+      return res.status(401).json({
         success: false,
         message: "Invalid email or password",
       });
     }
 
-    res.json({
+    res.status(200).json({
       success: true,
       company: {
         _id: company._id,
@@ -96,11 +155,14 @@ export const companyLogin = async (req, res) => {
       },
       token: generateToken(company._id),
     });
+
   } catch (error) {
+
     res.status(500).json({
       success: false,
-      message: "Server Error",
+      message: error.message,
     });
+
   }
 };
 
