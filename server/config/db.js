@@ -3,20 +3,23 @@ import mongoose from "mongoose";
 let isConnected = false;
 
 const connectDB = async () => {
-  if (isConnected) {
-    return;
-  }
-
   try {
-    const db = await mongoose.connect(process.env.MONGODB_URI, {
+    // Prevent multiple connections (important for serverless)
+    if (isConnected) {
+      return;
+    }
+
+    const connection = await mongoose.connect(process.env.MONGODB_URI, {
       bufferCommands: false,
     });
 
-    isConnected = db.connections[0].readyState === 1;
+    isConnected = connection.connections[0].readyState === 1;
+
     console.log("✅ MongoDB Connected");
+
   } catch (error) {
-    console.error("❌ MongoDB Connection Error:", error);
-    throw error;
+    console.error("❌ MongoDB Connection Error:", error.message);
+    process.exit(1);
   }
 };
 

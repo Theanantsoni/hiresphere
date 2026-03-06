@@ -6,9 +6,19 @@ import { useUser, useAuth } from "@clerk/clerk-react";
 export const AppContext = createContext();
 
 export const AppContextProvider = ({ children }) => {
+
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
   const { user } = useUser();
   const { getToken } = useAuth();
+
+  /* ================= AXIOS INSTANCE ================= */
+
+  const api = axios.create({
+    baseURL: backendUrl,
+  });
+
+  /* ================= STATES ================= */
 
   const [searchFilter, setSearchFilter] = useState({
     title: "",
@@ -16,73 +26,72 @@ export const AppContextProvider = ({ children }) => {
   });
 
   const [isSearched, setIsSearched] = useState(false);
+
   const [jobs, setJobs] = useState([]);
+
   const [showRecruiterLogin, setShowRecruiterLogin] = useState(false);
 
-  const [companyToken, setCompanyToken] = useState(null);
+  const [companyToken, setCompanyToken] = useState(
+    localStorage.getItem("companytoken") || null
+  );
+
   const [companyData, setCompanyData] = useState(null);
 
-  const [authLoading, setAuthLoading] = useState(true); // 🔥 important
+  const [authLoading, setAuthLoading] = useState(true);
 
-  const [userData, setUserData] = useState(null); // 🔹 for user profile data
+  const [userData, setUserData] = useState(null);
 
-  const [userApplications, setUserApplications] = useState([]); // 🔹 for user applications
+  const [userApplications, setUserApplications] = useState([]);
 
-  // 🔹 Fetch all jobs
+  /* ================= FETCH JOBS ================= */
+
   const fetchJobs = async () => {
     try {
-      const { data } = await axios.get(`${backendUrl}/api/jobs`);
+
+      const { data } = await api.get("/api/jobs");
 
       if (data.success) {
         setJobs(data.jobs);
-      } else {
-        toast.error(data.message);
       }
+
     } catch (error) {
       toast.error(error.response?.data?.message || error.message);
     }
   };
 
-  // 🔹 Fetch recruiter/company data
+  /* ================= FETCH COMPANY DATA ================= */
+
   const fetchCompanyData = async (token) => {
     try {
-      const { data } = await axios.get(`${backendUrl}/api/company/company`, {
+
+      const { data } = await api.get("/api/company/company", {
         headers: { token },
       });
 
       if (data.success) {
         setCompanyData(data.company);
-      } else {
-        toast.error(data.message);
       }
+
     } catch (error) {
+
       toast.error(error.response?.data?.message || error.message);
+
+      localStorage.removeItem("companytoken");
+      setCompanyToken(null);
+
     }
   };
 
-  // 🔥 Restore token on page refresh
-  useEffect(() => {
-    const storedToken = localStorage.getItem("companytoken");
+  /* ================= FETCH USER DATA ================= */
 
-    if (storedToken) {
-      setCompanyToken(storedToken);
-      fetchCompanyData(storedToken); // directly fetch company data
-    }
-
-    setAuthLoading(false); // ✅ very important
-  }, []);
-
-  //Function to fetch user data
   const fetchUserData = async () => {
     try {
+
       const token = await getToken();
 
-      if (!token) {
-        console.log("No Clerk token found");
-        return;
-      }
+      if (!token) return;
 
-      const { data } = await axios.get(`${backendUrl}/api/users/user`, {
+      const { data } = await api.get("/api/users/user", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -90,21 +99,25 @@ export const AppContextProvider = ({ children }) => {
 
       if (data.success) {
         setUserData(data.user);
-      } else {
-        toast.error(data.message);
       }
+
     } catch (error) {
+
       toast.error(error.response?.data?.message || error.message);
+
     }
   };
 
-  // Fecth  user's applied application data
+  /* ================= FETCH USER APPLICATIONS ================= */
 
   const fetchUserApplications = async () => {
     try {
+
       const token = await getToken();
 
-      const { data } = await axios.get(`${backendUrl}/api/users/applications`, {
+      if (!token) return;
+
+      const { data } = await api.get("/api/users/applications", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -113,44 +126,91 @@ export const AppContextProvider = ({ children }) => {
       if (data.success) {
         setUserApplications(data.applications);
       }
+
     } catch (error) {
+
       toast.error(error.response?.data?.message || error.message);
+
     }
   };
 
-  // 🔹 Fetch jobs once
+  /* ================= COMPANY TOKEN RESTORE ================= */
+
+  useEffect(() => {
+
+    const storedToken = localStorage.getItem("companytoken");
+
+    if (storedToken) {
+
+      setCompanyToken(storedToken);
+      fetchCompanyData(storedToken);
+
+    }
+
+    setAuthLoading(false);
+
+  }, []);
+
+  /* ================= FETCH JOBS ================= */
+
   useEffect(() => {
     fetchJobs();
   }, []);
 
+  /* ================= FETCH USER DATA ================= */
+
   useEffect(() => {
+
     if (user) {
+
       fetchUserData();
+      fetchUserApplications();
+
     }
+
   }, [user]);
 
+  /* ================= CONTEXT VALUE ================= */
+
   const value = {
+
+    backendUrl,
+
     searchFilter,
     setSearchFilter,
+
     isSearched,
     setIsSearched,
+
     jobs,
     setJobs,
+    fetchJobs,
+
     showRecruiterLogin,
     setShowRecruiterLogin,
+
     companyToken,
     setCompanyToken,
+
     companyData,
     setCompanyData,
-    backendUrl,
+    fetchCompanyData,
+
     authLoading,
+
     userData,
     setUserData,
+    fetchUserData,
+
     userApplications,
     setUserApplications,
-    fetchUserData,
-    fetchUserApplications, // ✅ ADD THIS LINE
+    fetchUserApplications,
+
   };
 
-  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
+  return (
+    <AppContext.Provider value={value}>
+      {children}
+    </AppContext.Provider>
+  );
 };

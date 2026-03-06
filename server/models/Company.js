@@ -1,5 +1,39 @@
 import mongoose from "mongoose";
 
+/* ================= EMPLOYEE SCHEMA ================= */
+
+const employeeSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    position: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    experience: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    photo: {
+      type: String, // Cloudinary URL
+      default: "",
+    },
+  },
+  {
+    _id: false, // prevents unnecessary MongoDB subdocument ids
+  }
+);
+
+/* ================= COMPANY SCHEMA ================= */
+
 const companySchema = new mongoose.Schema(
   {
     name: {
@@ -14,11 +48,7 @@ const companySchema = new mongoose.Schema(
       unique: true,
       trim: true,
       lowercase: true,
-    },
-
-    image: {
-      type: String,
-      required: true,
+      index: true,
     },
 
     password: {
@@ -26,17 +56,58 @@ const companySchema = new mongoose.Schema(
       required: true,
     },
 
-    // Email verification
+    image: {
+      type: String, // company logo
+      required: true,
+    },
+
+    /* ===== Email Verification ===== */
+
     isVerified: {
       type: Boolean,
       default: true,
-    }
+    },
 
+    /* ===== Company Profile ===== */
+
+    address: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    founded: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    /* ===== CEO ===== */
+
+    ceoName: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    ceoPhoto: {
+      type: String,
+      default: "", // Cloudinary URL
+    },
+
+    /* ===== Employees ===== */
+
+    employees: {
+      type: [employeeSchema],
+      default: [],
+    },
   },
   {
-    timestamps: true, // 👈 automatically adds createdAt & updatedAt
+    timestamps: true,
   }
 );
+
+/* ================= MODEL ================= */
 
 const Company = mongoose.model("Company", companySchema);
 

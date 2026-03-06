@@ -1,72 +1,146 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
+import axios from "axios";
+import { toast } from "react-toastify";
 import { AppContext } from "../context/AppContext";
-import { Mail, CheckCircle, Calendar, MapPin, Users, Upload } from "lucide-react";
+import { Mail, Upload, CheckCircle } from "lucide-react";
 
 const CompanyProfile = () => {
-  const { companyData } = useContext(AppContext);
+
+  const { companyData, backendUrl, companyToken } = useContext(AppContext);
+
+  const [loading, setLoading] = useState(false);
+  const [successPopup, setSuccessPopup] = useState(false);
 
   const [profile, setProfile] = useState({
     address: "",
     founded: "",
     ceoName: "",
     ceoPhoto: null,
+    existingCeoPhoto: "",
   });
 
-  const [employees, setEmployees] = useState([]);
+  useEffect(() => {
 
-  const addEmployee = () => {
-    setEmployees([
-      ...employees,
-      { name: "", position: "", photo: null },
-    ]);
+    if (companyData) {
+
+      setProfile({
+        address: companyData.address || "",
+        founded: companyData.founded || "",
+        ceoName: companyData.ceoName || "",
+        ceoPhoto: null,
+        existingCeoPhoto: companyData.ceoPhoto || "",
+      });
+
+    }
+
+  }, [companyData]);
+
+  const submitProfile = async () => {
+
+    try {
+
+      setLoading(true);
+
+      const formData = new FormData();
+
+      formData.append("address", profile.address);
+      formData.append("founded", profile.founded);
+      formData.append("ceoName", profile.ceoName);
+
+      if (profile.ceoPhoto) {
+        formData.append("ceoPhoto", profile.ceoPhoto);
+      } else {
+        formData.append("existingCeoPhoto", profile.existingCeoPhoto);
+      }
+
+      const { data } = await axios.post(
+        `${backendUrl}/api/company/update-profile`,
+        formData,
+        { headers: { token: companyToken } }
+      );
+
+      if (data.success) {
+
+        setSuccessPopup(true);
+        setTimeout(() => setSuccessPopup(false), 2500);
+
+      } else {
+
+        toast.error(data.message);
+
+      }
+
+    } catch (error) {
+
+      toast.error(error.response?.data?.message || error.message);
+
+    } finally {
+
+      setLoading(false);
+
+    }
+
   };
 
-  const updateEmployee = (index, field, value) => {
-    const updated = [...employees];
-    updated[index][field] = value;
-    setEmployees(updated);
-  };
-
-  const isEmployeeComplete = (emp) =>
-    emp.name && emp.position && emp.photo;
-
-  if (!companyData) return <div>Loading...</div>;
+  if (!companyData) return <div className="p-10 text-center">Loading...</div>;
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8">
 
-      {/* HEADER */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-8 rounded-2xl shadow-lg flex items-center gap-6">
+    <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 space-y-10">
 
-        <div className="w-28 h-20 bg-white rounded-lg flex items-center justify-center overflow-hidden">
-          <img
-            src={companyData.image}
-            alt="company"
-            className="w-full h-full object-contain"
-          />
+      {successPopup && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+
+          <div className="bg-white px-10 py-10 rounded-2xl shadow-2xl text-center space-y-4">
+
+            <CheckCircle size={70} className="mx-auto text-green-500 animate-bounce"/>
+
+            <h2 className="text-2xl font-semibold text-gray-800">
+              Profile Updated Successfully
+            </h2>
+
+            <p className="text-gray-500 text-sm">
+              Your company profile has been saved.
+            </p>
+
+          </div>
+
         </div>
+      )}
 
-        <div>
-          <h2 className="text-3xl font-bold">{companyData.name}</h2>
+      {/* COMPANY HEADER */}
 
-          <div className="flex items-center gap-2 mt-2 text-sm opacity-90">
-            <Mail size={16} />
+      <div className="bg-gradient-to-r from-indigo-600 via-indigo-500 to-blue-500 text-white p-8 rounded-2xl flex flex-col md:flex-row items-center gap-6 shadow-lg">
+
+        <img
+          src={companyData.image}
+          className="w-24 h-24 bg-white rounded-xl object-contain p-3 shadow-md"
+        />
+
+        <div className="text-center md:text-left">
+
+          <h2 className="text-3xl font-bold">
+            {companyData.name}
+          </h2>
+
+          <div className="flex items-center justify-center md:justify-start gap-2 mt-2 opacity-90">
+            <Mail size={16}/>
             {companyData.email}
           </div>
+
         </div>
+
       </div>
 
-      {/* BASIC INFO */}
-      <div className="bg-white p-8 rounded-2xl shadow-md space-y-6">
+      {/* COMPANY INFO */}
 
-        <h3 className="text-xl font-semibold">
-          Company Information
-        </h3>
+      <Card title="Company Information">
 
         <div className="grid md:grid-cols-2 gap-6">
 
-          <Input label="Company Name" value={companyData.name} disabled />
-          <Input label="Email" value={companyData.email} disabled />
+          <Input label="Company Name" value={companyData.name} disabled/>
+
+          <Input label="Email" value={companyData.email} disabled/>
 
           <Input
             label="Verification"
@@ -81,14 +155,12 @@ const CompanyProfile = () => {
           />
 
         </div>
-      </div>
+
+      </Card>
 
       {/* COMPANY DETAILS */}
-      <div className="bg-white p-8 rounded-2xl shadow-md space-y-6">
 
-        <h3 className="text-xl font-semibold flex items-center gap-2">
-          <MapPin size={18}/> Company Details
-        </h3>
+      <Card title="Company Details">
 
         <div className="grid md:grid-cols-2 gap-6">
 
@@ -100,22 +172,19 @@ const CompanyProfile = () => {
 
           <Input
             label="Founded Year"
-            type="number"
             value={profile.founded}
             onChange={(e)=>setProfile({...profile,founded:e.target.value})}
           />
 
         </div>
-      </div>
 
-      {/* CEO SECTION */}
-      <div className="bg-white p-8 rounded-2xl shadow-md space-y-6">
+      </Card>
 
-        <h3 className="text-xl font-semibold">
-          CEO Information
-        </h3>
+      {/* CEO */}
 
-        <div className="grid md:grid-cols-2 gap-6">
+      <Card title="CEO Information">
+
+        <div className="grid md:grid-cols-2 gap-6 items-center">
 
           <Input
             label="CEO Name"
@@ -125,124 +194,141 @@ const CompanyProfile = () => {
 
           <FileUpload
             label="CEO Photo"
-            onChange={(file)=>setProfile({...profile,ceoPhoto:file})}
+            existingPhoto={profile.existingCeoPhoto}
+            onChange={(file)=>{
+              setProfile({
+                ...profile,
+                ceoPhoto:file,
+                existingCeoPhoto:"",
+              })
+            }}
           />
 
         </div>
-      </div>
 
-      {/* EMPLOYEES */}
-      <div className="bg-white p-8 rounded-2xl shadow-md space-y-6">
+      </Card>
 
-        <h3 className="text-xl font-semibold flex items-center gap-2">
-          <Users size={18}/> Employees
-        </h3>
+      {/* SAVE BUTTON */}
 
-        {employees.map((emp,index)=>(
-          <div
-            key={index}
-            className="grid md:grid-cols-3 gap-6 border p-6 rounded-xl bg-gray-50"
-          >
-
-            <Input
-              label="Employee Name"
-              value={emp.name}
-              onChange={(e)=>updateEmployee(index,"name",e.target.value)}
-            />
-
-            <Input
-              label="Position"
-              value={emp.position}
-              onChange={(e)=>updateEmployee(index,"position",e.target.value)}
-            />
-
-            <FileUpload
-              label="Photo"
-              onChange={(file)=>updateEmployee(index,"photo",file)}
-            />
-
-          </div>
-        ))}
-
-        {/* ADD EMPLOYEE BUTTON */}
-        {(employees.length === 0 ||
-          isEmployeeComplete(employees[employees.length-1])) && (
-
-          <button
-            onClick={addEmployee}
-            className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
-          >
-            + Add Employee
-          </button>
-
-        )}
-
-      </div>
-
-      {/* ACTION BUTTONS */}
-      <div className="flex justify-end gap-4">
-
-        <button className="px-6 py-3 border rounded-lg hover:bg-gray-100">
-          Cancel
-        </button>
+      <div className="flex justify-end">
 
         <button
-          onClick={()=>window.location.reload()}
-          className="px-6 py-3 border rounded-lg hover:bg-gray-100"
+          onClick={submitProfile}
+          disabled={loading}
+          className="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white rounded-lg shadow-lg hover:shadow-xl transition"
         >
-          Reset
-        </button>
-
-        <button className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
-          Submit
+          {loading ? "Saving..." : "Save Profile"}
         </button>
 
       </div>
 
     </div>
+
   );
+
 };
 
 export default CompanyProfile;
 
+/* CARD */
 
+const Card = ({title,children}) => (
 
-/* INPUT COMPONENT */
+  <div className="bg-white border border-gray-100 p-8 rounded-2xl shadow-sm hover:shadow-lg transition space-y-6">
 
-const Input = ({label,value,onChange,disabled=false,type="text"}) => (
-  <div>
-    <label className="text-gray-500 text-sm">{label}</label>
+    <h3 className="text-xl font-semibold text-gray-800 border-b pb-2">
+      {title}
+    </h3>
+
+    {children}
+
+  </div>
+
+);
+
+/* INPUT */
+
+const Input = ({label,value,onChange,disabled=false}) => (
+
+  <div className="space-y-1">
+
+    <label className="text-sm font-medium text-gray-600">
+      {label}
+    </label>
+
     <input
-      type={type}
       value={value}
       disabled={disabled}
       onChange={onChange}
-      className={`w-full mt-1 p-3 border rounded-lg ${
-        disabled ? "bg-gray-100" : ""
-      }`}
+      className={`w-full px-4 py-3 border rounded-lg text-sm transition
+      focus:outline-none focus:ring-2 focus:ring-indigo-500
+      ${disabled ? "bg-gray-100 cursor-not-allowed" : "hover:border-indigo-400"}
+      `}
     />
-  </div>
-);
-
-
-/* FILE UPLOAD COMPONENT */
-
-const FileUpload = ({label,onChange}) => (
-  <div>
-    <label className="text-gray-500 text-sm">{label}</label>
-
-    <label className="mt-1 flex items-center justify-center gap-2 border-2 border-dashed rounded-lg p-4 cursor-pointer hover:bg-gray-50 transition">
-
-      <Upload size={18}/>
-      <span>Choose File</span>
-
-      <input
-        type="file"
-        className="hidden"
-        onChange={(e)=>onChange(e.target.files[0])}
-      />
-
-    </label>
 
   </div>
+
 );
+
+/* FILE UPLOAD */
+
+const FileUpload = ({label,existingPhoto,onChange}) => {
+
+  const [preview,setPreview] = useState("");
+
+  useEffect(()=>{
+
+    if(existingPhoto){
+      setPreview(existingPhoto);
+    }
+
+  },[existingPhoto]);
+
+  const handleChange=(e)=>{
+
+    const file = e.target.files[0];
+
+    if(file){
+      setPreview(URL.createObjectURL(file));
+      onChange(file);
+    }
+
+  };
+
+  return(
+
+    <div className="space-y-1">
+
+      <label className="text-sm font-medium text-gray-600">
+        {label}
+      </label>
+
+      <div className="flex items-center gap-3 mt-2">
+
+        {preview && (
+          <img
+            src={preview}
+            className="w-12 h-12 rounded-full object-cover border shadow"
+          />
+        )}
+
+        <label className="flex items-center gap-2 border border-gray-300 px-4 py-2 rounded-lg cursor-pointer text-sm hover:bg-indigo-50 hover:border-indigo-400 transition">
+
+          <Upload size={16}/>
+          Upload
+
+          <input
+            type="file"
+            hidden
+            onChange={handleChange}
+          />
+
+        </label>
+
+      </div>
+
+    </div>
+
+  );
+
+};

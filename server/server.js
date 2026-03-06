@@ -1,75 +1,115 @@
 import express from "express";
 import cors from "cors";
 import "dotenv/config";
-import connectDB from "./config/db.js";
+
 import * as Sentry from "@sentry/node";
+
+import connectDB from "./config/db.js";
+import connectCloudinary from "./config/cloudinary.js";
+
+import { clerkMiddleware } from "@clerk/express";
 import { clerkWebhooks } from "./controller/webhooks.js";
+
 import companyRoutes from "./routes/companyRoutes.js";
-// import connectCloudinary from "./config/cloudinary.js";
 import jobRoutes from "./routes/jobRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
-import {clerkMiddleware} from "@clerk/express";
 
+/* ================= SENTRY INIT ================= */
 
-
-// Initialize Sentry (SAFE VERSION)
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
   tracesSampleRate: 1.0,
 });
 
-// Initialize Express
+/* ================= EXPRESS APP ================= */
+
 const app = express();
 
-// Connect to Database
+/* ================= DATABASE ================= */
+
 connectDB();
+connectCloudinary();
 
-// await connectCloudinary()
+/* ================= WEBHOOK RAW BODY ================= */
+/* Must be before json parser */
 
-
-
-// IMPORTANT: Clerk webhook needs raw body
 app.use(
   "/webhooks",
   express.raw({ type: "application/json" })
 );
 
-// Middlewares
+/* ================= MIDDLEWARE ================= */
+
 app.use(cors());
-app.use(express.json());
+
+app.use(
+  express.json({
+    limit: "10mb",
+  })
+);
+
+app.use(
+  express.urlencoded({
+    extended: true,
+    limit: "10mb",
+  })
+);
+
+/* ================= CLERK AUTH ================= */
+
 app.use(clerkMiddleware());
 
-// Routes
+/* ================= HEALTH CHECK ================= */
+
 app.get("/", (req, res) => {
   res.status(200).send("API Working");
 });
 
-app.get("/debug-sentry", (req, res) => {
-  throw new Error("Test Sentry error");
+/* ================= SENTRY TEST ================= */
+
+app.get("/debug-sentry", () => {
+  throw new Error("Test Sentry Error");
 });
 
-// Webhook Route
-app.post("/webhooks", clerkWebhooks);
-app.use("/api/company", companyRoutes);
-app.use('/api/jobs', jobRoutes);
-app.use('/api/users', userRoutes);
+/* ================= WEBHOOK ================= */
 
-// Sentry Error Handler (must be last)
+app.post("/webhooks", clerkWebhooks);
+
+/* ================= API ROUTES ================= */
+
+app.use("/api/company", companyRoutes);
+app.use("/api/jobs", jobRoutes);
+app.use("/api/users", userRoutes);
+
+/* ================= SENTRY ERROR HANDLER ================= */
+
 Sentry.setupExpressErrorHandler(app);
 
-// Global Error Handler (VERY IMPORTANT FOR VERCEL)
+/* ================= GLOBAL ERROR HANDLER ================= */
+
 app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(500).json({ error: "Internal Server Error" });
+
+  console.error("SERVER ERROR:", err);
+
+  res.status(500).json({
+    success: false,
+    message: err.message || "Internal Server Error",
+  });
+
 });
 
-// Only run locally (not on Vercel)
+/* ================= SERVER START ================= */
+
 if (!process.env.VERCEL) {
+
   const PORT = process.env.PORT || 5000;
+
   app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`🚀 Server running on port ${PORT}`);
   });
+
 }
 
-// Export for Vercel
+/* ================= EXPORT ================= */
+
 export default app;
