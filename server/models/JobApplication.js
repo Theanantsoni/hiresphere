@@ -1,35 +1,57 @@
 import mongoose from "mongoose";
 
-const JobApplicationSchema = new mongoose.Schema({
-  userId: {
-    type: String,   // Clerk ID
-    required: true
-  },
+const jobApplicationSchema = new mongoose.Schema(
+{
+    userId:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref:"User",
+        required:true
+    },
 
-  companyId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Company",
-    required: true
-  },
+    companyId:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref:"Company",
+        required:true
+    },
 
-  jobId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Job",
-    required: true
-  },
+    jobId:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref:"Job",
+        required:true
+    },
 
-  status: {
-    type: String,
-    default: "Pending",
-  },
+    /* NEW FIELDS */
 
-  date: {
-    type: Number,
-    required: true
-  },
+    name:{
+        type:String,
+        required:true
+    },
 
-}, { timestamps: true });
+    email:{
+        type:String,
+        required:true
+    },
 
-const JobApplication = mongoose.model("JobApplication", JobApplicationSchema);
+    image:{
+        type:String
+    },
+
+    resume:{
+        type:String
+    },
+
+    status:{
+        type:String,
+        default:"Pending"
+    },
+
+    date:{
+        type:Number,
+        required:true
+    }
+
+},{timestamps:true});
+
+const JobApplication = mongoose.model("JobApplication",jobApplicationSchema);
 
 export default JobApplication;

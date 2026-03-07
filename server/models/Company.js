@@ -7,28 +7,28 @@ const employeeSchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
-      trim: true,
+      trim: true
     },
 
     position: {
       type: String,
       required: true,
-      trim: true,
+      trim: true
     },
 
     experience: {
-      type: String,
-      required: true,
-      trim: true,
+      type: Number,
+      default: 0,      // prevents missing field bug
+      min: 0
     },
 
     photo: {
-      type: String, // Cloudinary URL
-      default: "",
-    },
+      type: String,
+      default: null
+    }
   },
   {
-    _id: false, // prevents unnecessary MongoDB subdocument ids
+    _id: false
   }
 );
 
@@ -39,7 +39,7 @@ const companySchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
-      trim: true,
+      trim: true
     },
 
     email: {
@@ -48,38 +48,38 @@ const companySchema = new mongoose.Schema(
       unique: true,
       trim: true,
       lowercase: true,
-      index: true,
+      match: [/^\S+@\S+\.\S+$/, "Please use valid email"],
+      index: true
     },
 
     password: {
       type: String,
-      required: true,
+      required: true
     },
 
     image: {
-      type: String, // company logo
-      required: true,
+      type: String,
+      required: true
     },
 
-    /* ===== Email Verification ===== */
+    /* ===== Verification ===== */
 
     isVerified: {
       type: Boolean,
-      default: true,
+      default: true
     },
 
-    /* ===== Company Profile ===== */
+    /* ===== Company Info ===== */
 
     address: {
       type: String,
       default: "",
-      trim: true,
+      trim: true
     },
 
     founded: {
-      type: String,
-      default: "",
-      trim: true,
+      type: Number,
+      default: null
     },
 
     /* ===== CEO ===== */
@@ -87,23 +87,23 @@ const companySchema = new mongoose.Schema(
     ceoName: {
       type: String,
       default: "",
-      trim: true,
+      trim: true
     },
 
     ceoPhoto: {
       type: String,
-      default: "", // Cloudinary URL
+      default: null
     },
 
     /* ===== Employees ===== */
 
     employees: {
       type: [employeeSchema],
-      default: [],
-    },
+      default: []
+    }
   },
   {
-    timestamps: true,
+    timestamps: true
   }
 );
 

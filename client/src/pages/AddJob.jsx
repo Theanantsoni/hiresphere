@@ -8,11 +8,11 @@ import { AppContext } from "../context/AppContext";
 import { toast } from "react-toastify";
 
 const AddJob = () => {
+
   const navigate = useNavigate();
 
-  const [title, setTitle] = useState("");
   const [location, setLocation] = useState("Bangalore");
-  const [category, setCategory] = useState("Programming");
+  const [category, setCategory] = useState(JobCategories[0]);
   const [level, setLevel] = useState("Beginner");
   const [salary, setSalary] = useState("");
 
@@ -42,7 +42,7 @@ const AddJob = () => {
       const { data } = await axios.post(
         `${backendUrl}/api/company/post-job`,
         {
-          title,
+          title: category, // dropdown value becomes job title
           description,
           location,
           salary: Number(salary),
@@ -56,13 +56,13 @@ const AddJob = () => {
 
       if (data.success) {
         toast.success("Job Added Successfully");
-        setTitle("");
         setSalary("");
         quillRef.current.root.innerHTML = "";
         navigate("/dashboard/manage-jobs");
       } else {
         toast.error(data.message);
       }
+
     } catch (error) {
       toast.error("Failed to add job");
     }
@@ -95,23 +95,51 @@ const AddJob = () => {
         onSubmit={onsubmitHandler}
         className="w-full max-w-3xl bg-white p-8 rounded-2xl shadow-lg space-y-6"
       >
+
         <h2 className="text-2xl font-semibold text-gray-800">
           Add New Job
         </h2>
 
-        {/* Job Title */}
-        <div>
-          <label className="block mb-2 text-sm font-medium text-gray-600">
-            Job Title
-          </label>
-          <input
-            type="text"
-            placeholder="React Developer"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-            className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-black outline-none"
-          />
+        {/* Category / Location / Level */}
+        <div className="grid sm:grid-cols-3 gap-4">
+
+          {/* Job Title Dropdown */}
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="px-4 py-3 border rounded-xl focus:ring-2 focus:ring-black outline-none"
+          >
+            {JobCategories.map((item, index) => (
+              <option key={index} value={item}>
+                {item}
+              </option>
+            ))}
+          </select>
+
+          {/* Location */}
+          <select
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            className="px-4 py-3 border rounded-xl focus:ring-2 focus:ring-black outline-none"
+          >
+            {JobLocations.map((item, index) => (
+              <option key={index} value={item}>
+                {item}
+              </option>
+            ))}
+          </select>
+
+          {/* Level */}
+          <select
+            value={level}
+            onChange={(e) => setLevel(e.target.value)}
+            className="px-4 py-3 border rounded-xl focus:ring-2 focus:ring-black outline-none"
+          >
+            <option value="Beginner">Beginner</option>
+            <option value="Intermediate">Intermediate</option>
+            <option value="Senior">Senior</option>
+          </select>
+
         </div>
 
         {/* Job Description */}
@@ -128,50 +156,13 @@ const AddJob = () => {
           </div>
         </div>
 
-        {/* Category / Location / Level */}
-        <div className="grid sm:grid-cols-3 gap-4">
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="px-4 py-3 border rounded-xl focus:ring-2 focus:ring-black outline-none"
-          >
-            {JobCategories.map((item, index) => (
-              <option key={index} value={item}>
-                {item}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            className="px-4 py-3 border rounded-xl focus:ring-2 focus:ring-black outline-none"
-          >
-            {JobLocations.map((item, index) => (
-              <option key={index} value={item}>
-                {item}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={level}
-            onChange={(e) => setLevel(e.target.value)}
-            className="px-4 py-3 border rounded-xl focus:ring-2 focus:ring-black outline-none"
-          >
-            <option value="Beginner">Beginner</option>
-            <option value="Intermediate">Intermediate</option>
-            <option value="Senior">Senior</option>
-          </select>
-        </div>
-
         {/* Salary */}
         <div>
           <label className="block mb-2 text-sm font-medium text-gray-600">
             Salary
           </label>
           <input
-            type="number"
+            type="text"
             min={0}
             placeholder="500000"
             value={salary}
@@ -188,6 +179,7 @@ const AddJob = () => {
         >
           Add Job
         </button>
+
       </form>
     </div>
   );

@@ -22,10 +22,12 @@ import "react-toastify/dist/ReactToastify.css";
 import CompanyProfile from "./pages/CompanyProfile";
 import CompanyEmployees from "./pages/CompanyEmployees";
 
+import AboutCompanies from "./pages/AboutCompanies";
+import CompanyShow from "./pages/CompanyShow";
+
 /* ================= PROTECTED ROUTE ================= */
 
 const RecruiterProtectedRoute = ({ children }) => {
-
   const { companyToken, authLoading } = useContext(AppContext);
 
   if (authLoading) return null;
@@ -40,13 +42,10 @@ const RecruiterProtectedRoute = ({ children }) => {
 /* ================= APP ================= */
 
 const App = () => {
-
   const { showRecruiterLogin } = useContext(AppContext);
 
   return (
-
     <div>
-
       {showRecruiterLogin && <RecruiterLogin />}
 
       <ToastContainer />
@@ -61,6 +60,12 @@ const App = () => {
 
         <Route path="/applications" element={<Application />} />
 
+        {/* Companies Public Pages */}
+
+        <Route path="/companies" element={<AboutCompanies />} />
+
+        <Route path="/company/:id" element={<CompanyShow />} />
+
         {/* ================= DASHBOARD ================= */}
 
         <Route
@@ -71,12 +76,12 @@ const App = () => {
             </RecruiterProtectedRoute>
           }
         >
-
           {/* Dashboard Home */}
           <Route index element={<DashboardHome />} />
 
           {/* Jobs */}
           <Route path="add-jobs" element={<AddJob />} />
+
           <Route path="manage-jobs" element={<ManageJobs />} />
 
           {/* Applications */}
@@ -87,7 +92,6 @@ const App = () => {
 
           {/* Employees */}
           <Route path="company-employees" element={<CompanyEmployees />} />
-
         </Route>
 
         {/* ================= FALLBACK ================= */}
@@ -95,11 +99,8 @@ const App = () => {
         <Route path="*" element={<Navigate to="/" />} />
 
       </Routes>
-
     </div>
-
   );
-
 };
 
 export default App;

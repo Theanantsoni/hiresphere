@@ -73,24 +73,20 @@ export const assets = {
 }
 
 export const JobCategories = [
-    "Programming",
-    "Data Science",
-    "Designing",
-    "Networking",
-    "Management",
-    "Marketing",
-    "Cybersecurity",
-]
+    "Frontend Developer",
+    "Backend Developer",
+    "Full Stack Developer",
+    "UI/UX Developer",
+    "Flutter Developer",
+];
 
 export const JobLocations = [
     "Bangalore",
-    "Washington",
-    "Hyderabad",
+    "Ahmedabad",
     "Mumbai",
-    "California",
     "Chennai",
-    "New York"
-]
+    "Surat",
+];
 
 // Sample data for Manage Jobs Page
 export const manageJobsData = [

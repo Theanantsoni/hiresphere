@@ -13,7 +13,6 @@ const Navbar = () => {
   return (
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 2xl:px-20 h-20 flex justify-between items-center">
-
         {/* LOGO */}
         <div
           onClick={() => navigate("/")}
@@ -29,12 +28,19 @@ const Navbar = () => {
         {/* RIGHT SECTION */}
         {user ? (
           <div className="flex items-center gap-8 text-gray-700 font-medium">
-
             <Link
               to="/"
               className="relative group hover:text-blue-600 transition"
             >
               Home
+              <span className="absolute left-0 -bottom-1 w-0 h-0.5 bg-blue-600 transition-all group-hover:w-full"></span>
+            </Link>
+
+            <Link
+              to="/companies"
+              className="relative group hover:text-blue-600 transition"
+            >
+              About Companies
               <span className="absolute left-0 -bottom-1 w-0 h-0.5 bg-blue-600 transition-all group-hover:w-full"></span>
             </Link>
 
@@ -54,11 +60,9 @@ const Navbar = () => {
             </div>
 
             <UserButton afterSignOutUrl="/" />
-
           </div>
         ) : (
           <div className="flex items-center gap-6">
-
             <button
               onClick={() => setShowRecruiterLogin(true)}
               className="text-gray-600 hover:text-blue-600 transition font-medium"
@@ -72,7 +76,6 @@ const Navbar = () => {
             >
               Login
             </button>
-
           </div>
         )}
       </div>

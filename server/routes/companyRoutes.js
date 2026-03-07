@@ -16,26 +16,24 @@ import {
 
 import upload from "../config/multer.js";
 import { protectCompany } from "../middleware/authMiddleware.js";
+import Company from "../models/Company.js";
 
 const router = express.Router();
 
 
 /* ================= AUTH ROUTES ================= */
 
-// Register Company (with logo)
 router.post(
   "/register",
   upload.single("image"),
   registerCompany
 );
 
-// Verify OTP
 router.post(
   "/verify-otp",
   verifyCompanyOtp
 );
 
-// Login
 router.post(
   "/login",
   companyLogin
@@ -44,7 +42,6 @@ router.post(
 
 /* ================= COMPANY DATA ================= */
 
-// Get logged in company data
 router.get(
   "/company",
   protectCompany,
@@ -54,7 +51,6 @@ router.get(
 
 /* ================= COMPANY PROFILE ================= */
 
-// Update company profile (CEO only)
 router.post(
   "/update-profile",
   protectCompany,
@@ -65,7 +61,6 @@ router.post(
 
 /* ================= COMPANY EMPLOYEES ================= */
 
-// Update company employees
 router.post(
   "/update-employees",
   protectCompany,
@@ -76,21 +71,18 @@ router.post(
 
 /* ================= JOB MANAGEMENT ================= */
 
-// Post new job
 router.post(
   "/post-job",
   protectCompany,
   postJob
 );
 
-// List company jobs
 router.get(
   "/list-jobs",
   protectCompany,
   getCompanyPostedJobs
 );
 
-// Get job applicants
 router.get(
   "/applicants",
   protectCompany,
@@ -100,19 +92,39 @@ router.get(
 
 /* ================= JOB ACTIONS ================= */
 
-// Change application status
 router.post(
   "/change-status",
   protectCompany,
   changeApplicationStatus
 );
 
-// Toggle job visibility
 router.post(
   "/change-visibility",
   protectCompany,
   changeVisibility
 );
 
+
+/* ================= PUBLIC COMPANY ROUTES ================= */
+
+// Get all companies
+router.get("/", async (req, res) => {
+  try {
+    const companies = await Company.find().select("-password");
+    res.json(companies);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Get single company
+router.get("/:id", async (req, res) => {
+  try {
+    const company = await Company.findById(req.params.id).select("-password");
+    res.json(company);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
 
 export default router;

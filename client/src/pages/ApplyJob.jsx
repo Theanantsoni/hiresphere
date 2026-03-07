@@ -3,13 +3,13 @@ import { useParams, useNavigate } from "react-router-dom";
 import { AppContext } from "../context/AppContext";
 import Loading from "../components/Loading";
 import Navbar from "../components/Navbar";
-import kconvert from "k-convert";
-import moment from "moment";
-import JobCards from "../components/JobCards";
 import Footer from "../components/Footer";
+import JobCards from "../components/JobCards";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useAuth } from "@clerk/clerk-react";
+import kconvert from "k-convert";
+import moment from "moment";
 
 const ApplyJob = () => {
   const { id } = useParams();
@@ -34,7 +34,10 @@ const ApplyJob = () => {
   const fetchJob = async () => {
     try {
       const { data } = await axios.get(`${backendUrl}/api/jobs/${id}`);
-      if (data.success) setJobData(data.job);
+
+      if (data.success) {
+        setJobData(data.job);
+      }
     } catch (error) {
       toast.error(error.response?.data?.message || error.message);
     } finally {
@@ -46,7 +49,7 @@ const ApplyJob = () => {
     if (id) fetchJob();
   }, [id]);
 
-  /* ================= FETCH APPLICATIONS ================= */
+  /* ================= FETCH USER APPLICATIONS ================= */
 
   useEffect(() => {
     if (userData) {
@@ -54,15 +57,11 @@ const ApplyJob = () => {
     }
   }, [userData]);
 
-  /* ================= MEMOIZED APPLIED IDS ================= */
+  /* ================= CHECK APPLIED ================= */
 
   const appliedIds = useMemo(() => {
-    return new Set(
-      (userApplications || []).map((app) => app?.jobId?._id)
-    );
+    return new Set((userApplications || []).map((app) => app?.jobId?._id));
   }, [userApplications]);
-
-  /* ================= CHECK ALREADY APPLIED ================= */
 
   useEffect(() => {
     if (id) {
@@ -89,7 +88,7 @@ const ApplyJob = () => {
         { jobId: id },
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
 
       if (data.success) {
@@ -105,6 +104,22 @@ const ApplyJob = () => {
     }
   };
 
+  /* ================= CLEAN DESCRIPTION ================= */
+
+  const descriptionHTML = useMemo(() => {
+    if (!jobData?.description) return "";
+
+    let html = jobData.description;
+
+    // Remove quill editor UI spans
+    html = html.replace(/<span class="ql-ui".*?>.*?<\/span>/g, "");
+
+    // Remove inline styles
+    html = html.replace(/ style="[^"]*"/g, "");
+
+    return html;
+  }, [jobData]);
+
   if (loading || !jobData) return <Loading />;
 
   return (
@@ -113,13 +128,10 @@ const ApplyJob = () => {
 
       <div className="min-h-screen bg-gray-50 py-10 px-4 2xl:px-20">
         <div className="max-w-7xl mx-auto">
-
           {/* ================= JOB HEADER ================= */}
 
-          <div className="bg-white shadow-xl rounded-2xl p-8 mb-10 border border-gray-100 hover:shadow-2xl transition">
-
+          <div className="bg-white shadow-lg rounded-2xl p-8 mb-10 border">
             <div className="flex flex-col lg:flex-row justify-between gap-8">
-
               <div className="flex gap-5">
                 <img
                   className="h-24 w-24 object-contain bg-gray-50 p-4 rounded-xl border"
@@ -133,7 +145,6 @@ const ApplyJob = () => {
                   </h1>
 
                   <div className="flex flex-wrap gap-3 mt-4 text-sm">
-
                     <span className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full font-medium">
                       {jobData?.companyId?.name}
                     </span>
@@ -149,7 +160,6 @@ const ApplyJob = () => {
                     <span className="bg-green-50 text-green-600 px-3 py-1 rounded-full font-semibold">
                       💰 {kconvert.convertTo(jobData?.salary)}
                     </span>
-
                   </div>
 
                   <p className="mt-4 text-gray-400 text-sm">
@@ -158,55 +168,11 @@ const ApplyJob = () => {
                 </div>
               </div>
 
-              <div className="flex flex-col justify-center items-start lg:items-end">
+              <div className="flex items-center">
                 <button
                   disabled={isAlreadyApplied}
                   onClick={!isAlreadyApplied ? applyHandler : undefined}
-                  className={`px-12 py-3 rounded-xl text-white font-semibold transition-all duration-300 transform
-                  ${
-                    isAlreadyApplied
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:scale-105 hover:shadow-lg"
-                  }`}
-                >
-                  {isAlreadyApplied ? "Already Applied" : "Apply Now"}
-                </button>
-              </div>
-
-            </div>
-          </div>
-
-          {/* ================= MAIN GRID ================= */}
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-
-            {/* LEFT DESCRIPTION */}
-            <div className="lg:col-span-2 bg-white rounded-2xl shadow-md p-8 border border-gray-100">
-
-              <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-3">
-                Job Description
-              </h2>
-
-              <div
-                className="prose max-w-none text-gray-700"
-                dangerouslySetInnerHTML={{
-                  __html: jobData?.description,
-                }}
-              />
-            </div>
-
-            {/* RIGHT SIDEBAR */}
-            <div className="space-y-6">
-
-              <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100 sticky top-24 hidden lg:block">
-                <h3 className="font-semibold text-lg mb-4">
-                  Quick Apply
-                </h3>
-
-                <button
-                  disabled={isAlreadyApplied}
-                  onClick={!isAlreadyApplied ? applyHandler : undefined}
-                  className={`w-full py-3 rounded-xl text-white font-semibold transition-all duration-300
+                  className={`px-12 py-3 rounded-xl text-white font-semibold transition
                   ${
                     isAlreadyApplied
                       ? "bg-gray-400 cursor-not-allowed"
@@ -215,43 +181,67 @@ const ApplyJob = () => {
                 >
                   {isAlreadyApplied ? "Already Applied" : "Apply Now"}
                 </button>
-
-                <p className="text-xs text-gray-400 mt-3">
-                  Make sure your resume is updated.
-                </p>
               </div>
-
-              <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100">
-
-                <h2 className="text-lg font-semibold mb-5">
-                  More jobs from {jobData?.companyId?.name}
-                </h2>
-
-                <div className="space-y-4">
-
-                  {jobs
-                    ?.filter(
-                      (job) =>
-                        job?._id !== jobData?._id &&
-                        job?.companyId?._id === jobData?.companyId?._id
-                    )
-                    ?.filter((job) => !appliedIds.has(job?._id))
-                    ?.slice(0, 4)
-                    ?.map((job) => (
-                      <div
-                        key={job?._id}
-                        className="transition transform hover:-translate-y-1 hover:shadow-md rounded-xl"
-                      >
-                        <JobCards job={job} />
-                      </div>
-                    ))}
-
-                </div>
-              </div>
-
             </div>
           </div>
 
+          {/* ================= MAIN GRID ================= */}
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+            {/* ================= DESCRIPTION ================= */}
+
+            <div className="lg:col-span-2 bg-white rounded-2xl shadow-md p-8 border">
+              <h2 className="text-2xl font-bold mb-6 border-b pb-3">
+                Job Description
+              </h2>
+
+              <div
+                className="
+                max-w-none
+                text-gray-700
+                leading-relaxed
+                [&_h1]:text-3xl
+                [&_h1]:font-bold
+                [&_h2]:text-2xl
+                [&_h2]:font-semibold
+                [&_h2]:mt-6
+                [&_h2]:mb-2
+                [&_p]:mb-3
+                [&_ul]:list-disc
+                [&_ul]:pl-6
+                [&_li]:mb-1
+                "
+                dangerouslySetInnerHTML={{ __html: descriptionHTML }}
+              />
+            </div>
+
+            {/* ================= MORE JOBS ================= */}
+
+            <div className="bg-white p-6 rounded-2xl shadow-md border">
+              <h2 className="text-lg font-semibold mb-5">
+                More jobs from {jobData?.companyId?.name}
+              </h2>
+
+              <div className="space-y-4">
+                {jobs
+                  ?.filter(
+                    (job) =>
+                      job?._id !== jobData?._id &&
+                      job?.companyId?._id === jobData?.companyId?._id,
+                  )
+                  ?.filter((job) => !appliedIds.has(job?._id))
+                  ?.slice(0, 4)
+                  ?.map((job) => (
+                    <div
+                      key={job?._id}
+                      className="transition hover:-translate-y-1 hover:shadow-md rounded-xl"
+                    >
+                      <JobCards job={job} />
+                    </div>
+                  ))}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

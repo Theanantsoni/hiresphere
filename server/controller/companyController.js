@@ -251,12 +251,20 @@ export const updateCompanyEmployees = async (req, res) => {
       });
     }
 
-    // employees array from frontend
-    const employees = JSON.parse(req.body.employees || "[]");
+    /* ===== Parse Employees ===== */
+
+    let employees = [];
+
+    try {
+      employees = JSON.parse(req.body.employees || "[]");
+    } catch {
+      employees = [];
+    }
+
+    /* ===== Upload Employee Photos ===== */
 
     const uploadedPhotos = [];
 
-    // upload new photos
     if (req.files && req.files.length > 0) {
 
       for (const file of req.files) {
@@ -274,29 +282,37 @@ export const updateCompanyEmployees = async (req, res) => {
 
     let photoIndex = 0;
 
-    const finalEmployees = employees.map(emp => {
+    /* ===== Build Final Employees ===== */
+
+    const finalEmployees = employees.map((emp) => {
 
       let photo = emp.photo || "";
 
-      // assign uploaded photo
       if (uploadedPhotos[photoIndex]) {
-
         photo = uploadedPhotos[photoIndex];
         photoIndex++;
+      }
 
+      /* ===== SAFE EXPERIENCE PARSE ===== */
+
+      let experience = parseInt(emp.experience ?? 0);
+
+      if (isNaN(experience) || experience < 0) {
+        experience = 0;
       }
 
       return {
-        name: emp.name,
-        position: emp.position,
-        experience: emp.experience,
-        photo
+        name: emp.name?.trim() || "",
+        position: emp.position?.trim() || "",
+        experience: experience,
+        photo: photo
       };
 
     });
 
-    // 🔥 IMPORTANT: Replace employees array completely
-    await Company.findByIdAndUpdate(
+    /* ===== Save To Database ===== */
+
+    const updatedCompany = await Company.findByIdAndUpdate(
       req.company._id,
       { employees: finalEmployees },
       { new: true }
@@ -305,7 +321,7 @@ export const updateCompanyEmployees = async (req, res) => {
     res.json({
       success: true,
       message: "Employees updated successfully",
-      employees: finalEmployees
+      employees: updatedCompany.employees
     });
 
   } catch (error) {
@@ -318,7 +334,6 @@ export const updateCompanyEmployees = async (req, res) => {
   }
 
 };
-
 
 /* ================= POST JOB ================= */
 
@@ -388,22 +403,27 @@ export const getJobApplicants = async (req, res) => {
   try {
 
     const applications = await JobApplication.find({
-      companyId: req.company._id,
-    }).populate("jobId");
+      companyId: req.company._id
+    })
+
+    .populate("jobId", "title location")
+
+    .sort({ date: -1 });
 
     res.json({
       success: true,
-      applications,
+      applications
     });
 
   } catch (error) {
 
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: error.message
     });
 
   }
+
 };
 
 /* ================= CHANGE APPLICATION STATUS ================= */
@@ -457,6 +477,38 @@ export const changeVisibility = async (req, res) => {
       success: false,
       message: error.message,
     });
+
+  }
+};
+
+/* ================= GET COMPANIES ================= */
+
+export const getCompanies = async (req, res) => {
+  try {
+
+    const companies = await Company.find().select("-password");
+
+    res.json(companies);
+
+  } catch (error) {
+
+    res.status(500).json({ message: error.message });
+
+  }
+};
+
+/* ================= GET COMPANY BY ID ================= */
+
+export const getCompanyById = async (req, res) => {
+  try {
+
+    const company = await Company.findById(req.params.id).select("-password");
+
+    res.json(company);
+
+  } catch (error) {
+
+    res.status(500).json({ message: error.message });
 
   }
 };

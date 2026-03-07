@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { AppContext } from "../context/AppContext";
-import { Upload, Trash2, CheckCircle } from "lucide-react";
+import { Upload, Trash2, CheckCircle, Plus } from "lucide-react";
 
 const CompanyEmployees = () => {
 
@@ -12,12 +12,22 @@ const CompanyEmployees = () => {
   const [loading,setLoading] = useState(false);
   const [successPopup,setSuccessPopup] = useState(false);
   const [deleteIndex,setDeleteIndex] = useState(null);
+  const [search,setSearch] = useState("");
+  const [showAddModal,setShowAddModal] = useState(false);
+
+  const [newEmployee,setNewEmployee] = useState({
+    name:"",
+    position:"",
+    experience:"",
+    photo:null,
+    preview:""
+  });
 
   useEffect(()=>{
 
     if(companyData){
 
-      const mapped = (companyData.employees || []).map((emp)=>({
+      const mapped = (companyData.employees || []).map(emp=>({
 
         name:emp.name || "",
         position:emp.position || "",
@@ -25,61 +35,121 @@ const CompanyEmployees = () => {
         photo:null,
         existingPhoto:emp.photo || ""
 
-      }))
+      }));
 
-      setEmployees(mapped)
+      setEmployees(mapped);
 
     }
 
-  },[companyData])
+  },[companyData]);
 
-  const addEmployee = ()=>{
-
-    setEmployees(prev=>[
-      ...prev,
-      {
-        name:"",
-        position:"",
-        experience:"",
-        photo:null,
-        existingPhoto:""
-      }
-    ])
-
-  }
 
   const updateEmployee=(index,field,value)=>{
 
     setEmployees(prev=>{
 
-      const updated=[...prev]
-      updated[index][field]=value
-      return updated
+      const updated=[...prev];
+      updated[index][field]=value;
+      return updated;
 
-    })
+    });
 
-  }
+  };
+
 
   const deleteEmployee=(index)=>{
 
-    setDeleteIndex(index)
+    setDeleteIndex(index);
 
-  }
+  };
+
 
   const confirmDeleteEmployee=()=>{
 
-    setEmployees(prev=>prev.filter((_,i)=>i!==deleteIndex))
-    setDeleteIndex(null)
+    setEmployees(prev=>prev.filter((_,i)=>i!==deleteIndex));
+    setDeleteIndex(null);
 
-  }
+  };
+
+
+  const handleNewPhoto=(file)=>{
+
+    if(file){
+
+      setNewEmployee(prev=>({
+
+        ...prev,
+        photo:file,
+        preview:URL.createObjectURL(file)
+
+      }));
+
+    }
+
+  };
+
+
+  const addEmployeeSubmit=()=>{
+
+    if(!newEmployee.name || !newEmployee.position || !newEmployee.experience || !newEmployee.photo){
+
+      toast.error("All fields required");
+      return;
+
+    }
+
+    const employee = {
+
+      name:newEmployee.name,
+      position:newEmployee.position,
+      experience:newEmployee.experience,
+      photo:newEmployee.photo,
+      existingPhoto:""
+
+    };
+
+    setEmployees(prev=>[employee,...prev]);
+
+    setNewEmployee({
+      name:"",
+      position:"",
+      experience:"",
+      photo:null,
+      preview:""
+    });
+
+    setShowAddModal(false);
+
+  };
+
+
+  const validateEmployees = () => {
+
+    for(let emp of employees){
+
+      if(!emp.name || !emp.position || !emp.experience){
+
+        toast.error("Employee fields cannot be empty");
+        return false;
+
+      }
+
+    }
+
+    return true;
+
+  };
+
 
   const saveEmployees = async ()=>{
 
+    if(!validateEmployees()) return;
+
     try{
 
-      setLoading(true)
+      setLoading(true);
 
-      const formData = new FormData()
+      const formData = new FormData();
 
       const employeeData = employees.map(emp=>({
 
@@ -88,17 +158,17 @@ const CompanyEmployees = () => {
         experience:emp.experience,
         photo:emp.existingPhoto || ""
 
-      }))
+      }));
 
-      formData.append("employees",JSON.stringify(employeeData))
+      formData.append("employees",JSON.stringify(employeeData));
 
       employees.forEach(emp=>{
 
         if(emp.photo){
-          formData.append("employeePhotos",emp.photo)
+          formData.append("employeePhotos",emp.photo);
         }
 
-      })
+      });
 
       const {data} = await axios.post(
         `${backendUrl}/api/company/update-employees`,
@@ -109,56 +179,66 @@ const CompanyEmployees = () => {
             "Content-Type":"multipart/form-data"
           }
         }
-      )
+      );
 
       if(data.success){
 
-        setSuccessPopup(true)
+        setSuccessPopup(true);
 
         setTimeout(()=>{
-          setSuccessPopup(false)
-        },2000)
+
+          setSuccessPopup(false);
+
+        },2000);
 
       }
       else{
 
-        toast.error(data.message)
+        toast.error(data.message);
 
       }
 
     }
     catch(error){
 
-      toast.error(error.response?.data?.message || error.message)
+      toast.error(error.response?.data?.message || error.message);
 
     }
     finally{
 
-      setLoading(false)
+      setLoading(false);
 
     }
 
-  }
+  };
+
+
+  const filteredEmployees = employees.filter(emp =>
+    emp.name.toLowerCase().includes(search.toLowerCase()) ||
+    emp.position.toLowerCase().includes(search.toLowerCase()) ||
+    emp.experience.toLowerCase().includes(search.toLowerCase())
+  );
+
 
   if(!companyData){
-    return <div className="p-10 text-center">Loading...</div>
+    return <div className="p-10 text-center">Loading...</div>;
   }
+
 
   return(
 
-    <div className="max-w-7xl mx-auto px-6 py-10 space-y-10">
+    <div className="max-w-7xl mx-auto px-6 py-10 space-y-6">
 
-      {/* SUCCESS POPUP */}
 
       {successPopup && (
 
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
 
-          <div className="bg-white px-10 py-10 rounded-2xl shadow-2xl text-center space-y-4">
+          <div className="bg-white px-10 py-10 rounded-2xl shadow-xl text-center">
 
-            <CheckCircle size={70} className="mx-auto text-green-500 animate-bounce"/>
+            <CheckCircle size={70} className="mx-auto text-green-500 mb-4"/>
 
-            <h2 className="text-2xl font-semibold text-gray-800">
+            <h2 className="text-2xl font-semibold">
               Employees Updated
             </h2>
 
@@ -168,13 +248,12 @@ const CompanyEmployees = () => {
 
       )}
 
-      {/* DELETE CONFIRM */}
 
       {deleteIndex !== null && (
 
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
 
-          <div className="bg-white rounded-2xl shadow-2xl w-[420px] p-8 text-center space-y-6">
+          <div className="bg-white rounded-xl shadow-xl p-8 text-center space-y-6">
 
             <Trash2 className="mx-auto text-red-500" size={50}/>
 
@@ -182,22 +261,18 @@ const CompanyEmployees = () => {
               Delete Employee?
             </h2>
 
-            <p className="text-gray-500 text-sm">
-              Are you sure you want to delete this employee?
-            </p>
-
             <div className="flex justify-center gap-4">
 
               <button
                 onClick={()=>setDeleteIndex(null)}
-                className="px-5 py-2 rounded-lg border hover:bg-gray-100"
+                className="px-5 py-2 border rounded-lg"
               >
                 Cancel
               </button>
 
               <button
                 onClick={confirmDeleteEmployee}
-                className="px-5 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white"
+                className="px-5 py-2 bg-red-500 text-white rounded-lg"
               >
                 Delete
               </button>
@@ -210,187 +285,246 @@ const CompanyEmployees = () => {
 
       )}
 
-      <h1 className="text-2xl font-semibold">
-        Company Employees
-      </h1>
 
-      <div className="bg-white rounded-2xl shadow-sm p-8 space-y-6">
+      {showAddModal && (
 
-        {employees.map((emp,index)=>(
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
 
-          <div
-            key={index}
-            className="grid md:grid-cols-5 gap-6 border border-gray-200 p-6 rounded-xl bg-gray-50 hover:bg-white hover:shadow-md transition items-end"
-          >
+          <div className="bg-white w-[420px] rounded-xl shadow-xl p-8 space-y-4">
+
+            <h2 className="text-xl font-semibold text-center">
+              Add Employee
+            </h2>
 
             <Input
               label="Employee Name"
-              value={emp.name}
-              onChange={(e)=>updateEmployee(index,"name",e.target.value)}
+              value={newEmployee.name}
+              onChange={(e)=>setNewEmployee({...newEmployee,name:e.target.value})}
             />
 
             <Input
               label="Position"
-              value={emp.position}
-              onChange={(e)=>updateEmployee(index,"position",e.target.value)}
+              value={newEmployee.position}
+              onChange={(e)=>setNewEmployee({...newEmployee,position:e.target.value})}
             />
 
             <Input
               label="Experience"
-              value={emp.experience}
-              onChange={(e)=>updateEmployee(index,"experience",e.target.value)}
+              value={newEmployee.experience}
+              onChange={(e)=>setNewEmployee({...newEmployee,experience:e.target.value})}
             />
 
-            <FileUpload
-              label="Photo"
-              existingPhoto={emp.existingPhoto}
-              onChange={(file)=>{
-
-                updateEmployee(index,"photo",file)
-                updateEmployee(index,"existingPhoto","")
-
-              }}
+            <UploadField
+              preview={newEmployee.preview}
+              onChange={handleNewPhoto}
             />
 
-            <button
-              onClick={()=>deleteEmployee(index)}
-              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2"
-            >
+            <div className="flex justify-end gap-3 pt-4">
 
-              <Trash2 size={16}/>
-              Delete
+              <button
+                onClick={()=>setShowAddModal(false)}
+                className="px-4 py-2 border rounded-lg"
+              >
+                Cancel
+              </button>
 
-            </button>
+              <button
+                onClick={addEmployeeSubmit}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg"
+              >
+                Add Employee
+              </button>
+
+            </div>
 
           </div>
 
-        ))}
+        </div>
 
-        <button
-          onClick={addEmployee}
-          className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow"
-        >
-          + Add Employee
-        </button>
+      )}
+
+
+      <div className="flex flex-wrap justify-between items-center gap-4">
+
+        <h1 className="text-2xl font-semibold">
+          Company Employees
+        </h1>
+
+        <div className="flex gap-3">
+
+          <button
+            onClick={()=>setShowAddModal(true)}
+            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg"
+          >
+            <Plus size={16}/>
+            Add Employee
+          </button>
+
+          <button
+            onClick={saveEmployees}
+            className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg"
+          >
+            {loading ? "Saving..." : "Save Changes"}
+          </button>
+
+        </div>
 
       </div>
 
-      <div className="flex justify-end">
 
-        <button
-          onClick={saveEmployees}
-          disabled={loading}
-          className="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-lg"
-        >
-          {loading ? "Saving..." : "Save Employees"}
-        </button>
+      <input
+        type="text"
+        placeholder="Search employee..."
+        value={search}
+        onChange={(e)=>setSearch(e.target.value)}
+        className="w-full md:w-80 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+      />
+
+
+      <div className="bg-white rounded-xl shadow overflow-x-auto">
+
+        <table className="w-full text-sm">
+
+          <thead className="bg-gray-100">
+
+            <tr>
+
+              <th className="p-4 text-left">Employee Name</th>
+              <th className="p-4 text-left">Position</th>
+              <th className="p-4 text-left">Experience</th>
+              <th className="p-4 text-left">Photo</th>
+              <th className="p-4 text-left">Action</th>
+
+            </tr>
+
+          </thead>
+
+          <tbody>
+
+            {filteredEmployees.map((emp,index)=>(
+
+              <tr key={index} className="border-t hover:bg-gray-50">
+
+                <td className="p-4">
+
+                  <input
+                    value={emp.name}
+                    onChange={(e)=>updateEmployee(index,"name",e.target.value)}
+                    className="w-full px-3 py-2 border rounded-lg"
+                  />
+
+                </td>
+
+                <td className="p-4">
+
+                  <input
+                    value={emp.position}
+                    onChange={(e)=>updateEmployee(index,"position",e.target.value)}
+                    className="w-full px-3 py-2 border rounded-lg"
+                  />
+
+                </td>
+
+                <td className="p-4">
+
+                  <input
+                    value={emp.experience}
+                    onChange={(e)=>updateEmployee(index,"experience",e.target.value)}
+                    className="w-full px-3 py-2 border rounded-lg"
+                  />
+
+                </td>
+
+                <td className="p-4">
+
+                  <UploadField
+                    preview={emp.photo ? URL.createObjectURL(emp.photo) : emp.existingPhoto}
+                    onChange={(file)=>{
+
+                      updateEmployee(index,"photo",file);
+                      updateEmployee(index,"existingPhoto","");
+
+                    }}
+                  />
+
+                </td>
+
+                <td className="p-4">
+
+                  <button
+                    onClick={()=>deleteEmployee(index)}
+                    className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg"
+                  >
+                    <Trash2 size={16}/>
+                    Delete
+                  </button>
+
+                </td>
+
+              </tr>
+
+            ))}
+
+          </tbody>
+
+        </table>
 
       </div>
 
     </div>
 
-  )
+  );
 
-}
+};
 
-export default CompanyEmployees
+export default CompanyEmployees;
 
 
-/* INPUT COMPONENT */
 
 const Input = ({label,value,onChange}) => (
 
   <div className="space-y-1">
 
-    <label className="text-sm font-medium text-gray-600">
+    <label className="text-sm text-gray-600">
       {label}
     </label>
 
     <input
       value={value}
       onChange={onChange}
-      className="w-full px-4 py-3 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500"
+      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
     />
 
   </div>
 
-)
+);
 
 
-/* FILE UPLOAD */
 
-const FileUpload = ({label,existingPhoto,onChange}) => {
+const UploadField = ({preview,onChange}) => (
 
-  const [preview,setPreview] = useState("")
-  const [fileName,setFileName] = useState("")
-  const [isNew,setIsNew] = useState(false)
+  <div className="flex items-center gap-3">
 
-  useEffect(()=>{
+    {preview && (
+      <img
+        src={preview}
+        className="w-10 h-10 rounded-full object-cover border"
+      />
+    )}
 
-    if(existingPhoto){
+    <label className="flex items-center gap-2 border px-3 py-1 rounded-lg cursor-pointer hover:bg-indigo-50 text-sm">
 
-      setPreview(existingPhoto)
-      setIsNew(false)
+      <Upload size={16}/>
+      Upload
 
-    }
+      <input
+        type="file"
+        hidden
+        onChange={(e)=>onChange(e.target.files[0])}
+      />
 
-  },[existingPhoto])
+    </label>
 
-  const handleChange=(e)=>{
+  </div>
 
-    const file=e.target.files[0]
-
-    if(file){
-
-      setPreview(URL.createObjectURL(file))
-      setFileName(file.name)
-      setIsNew(true)
-      onChange(file)
-
-    }
-
-  }
-
-  return(
-
-    <div className="space-y-1">
-
-      <label className="text-sm font-medium text-gray-600">
-        {label}
-      </label>
-
-      {isNew && (
-        <div className="text-xs text-indigo-500 truncate">
-          {fileName}
-        </div>
-      )}
-
-      <div className="flex items-center gap-3 mt-2">
-
-        {preview && (
-          <img
-            src={preview}
-            className="w-12 h-12 rounded-full object-cover border shadow"
-          />
-        )}
-
-        <label className="flex items-center gap-2 border border-gray-300 px-4 py-2 rounded-lg cursor-pointer text-sm hover:bg-indigo-50">
-
-          <Upload size={16}/>
-          Upload
-
-          <input
-            type="file"
-            hidden
-            onChange={handleChange}
-          />
-
-        </label>
-
-      </div>
-
-    </div>
-
-  )
-
-}
+);

@@ -31,7 +31,6 @@ connectDB();
 connectCloudinary();
 
 /* ================= WEBHOOK RAW BODY ================= */
-/* Must be before json parser */
 
 app.use(
   "/webhooks",
@@ -55,10 +54,6 @@ app.use(
   })
 );
 
-/* ================= CLERK AUTH ================= */
-
-app.use(clerkMiddleware());
-
 /* ================= HEALTH CHECK ================= */
 
 app.get("/", (req, res) => {
@@ -74,6 +69,10 @@ app.get("/debug-sentry", () => {
 /* ================= WEBHOOK ================= */
 
 app.post("/webhooks", clerkWebhooks);
+
+/* ================= CLERK AUTH ================= */
+
+app.use(clerkMiddleware());
 
 /* ================= API ROUTES ================= */
 

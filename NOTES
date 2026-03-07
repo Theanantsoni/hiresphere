@@ -108,6 +108,9 @@ Use of : Sentry, Clerk, Vercel, MongoDB Atlas, Cloudinary, Svix, React-Toastify,
 
 10.20 - Vercel deploy 
 
-Company Employee page completed . 07-03-26
+
+Change categories and location in assets.js file.
+Company manage job application for pending, accept reject complete - Both recruiter and user.
+08-03-2026
 
 
