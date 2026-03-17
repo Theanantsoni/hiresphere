@@ -295,18 +295,14 @@ export const updateCompanyEmployees = async (req, res) => {
 
       /* ===== SAFE EXPERIENCE PARSE ===== */
 
-      let experience = parseInt(emp.experience ?? 0);
-
-      if (isNaN(experience) || experience < 0) {
-        experience = 0;
-      }
+      let experience = emp.experience?.toString().trim() || "";
 
       return {
-        name: emp.name?.trim() || "",
-        position: emp.position?.trim() || "",
-        experience: experience,
-        photo: photo
-      };
+  name: emp.name?.trim() || "",
+  position: emp.position?.trim() || "",
+  experience: experience, // ✅ STRING SAVE
+  photo: photo
+};
 
     });
 

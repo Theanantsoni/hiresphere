@@ -17,8 +17,9 @@ const employeeSchema = new mongoose.Schema(
     },
 
     experience: {
-      type: Number,
-      default: 0,      // prevents missing field bug
+      type: String, // ✅ STRING NOW
+      required: true,
+      trim: true,
       min: 0
     },
 

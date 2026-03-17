@@ -515,7 +515,7 @@ const UploadField = ({preview,onChange}) => (
     <label className="flex items-center gap-2 border px-3 py-1 rounded-lg cursor-pointer hover:bg-indigo-50 text-sm">
 
       <Upload size={16}/>
-      Upload
+      Upload Employee Photo
 
       <input
         type="file"
