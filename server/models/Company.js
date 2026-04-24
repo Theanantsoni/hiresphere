@@ -7,30 +7,30 @@ const employeeSchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
-      trim: true
+      trim: true,
     },
 
     position: {
       type: String,
       required: true,
-      trim: true
+      trim: true,
     },
 
     experience: {
-      type: String, // ✅ STRING NOW
+      type: String,
       required: true,
       trim: true,
-      min: 0
+      min: 0,
     },
 
     photo: {
       type: String,
-      default: null
-    }
+      default: null,
+    },
   },
   {
-    _id: false
-  }
+    _id: false,
+  },
 );
 
 /* ================= COMPANY SCHEMA ================= */
@@ -40,7 +40,7 @@ const companySchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
-      trim: true
+      trim: true,
     },
 
     email: {
@@ -50,24 +50,24 @@ const companySchema = new mongoose.Schema(
       trim: true,
       lowercase: true,
       match: [/^\S+@\S+\.\S+$/, "Please use valid email"],
-      index: true
+      index: true,
     },
 
     password: {
       type: String,
-      required: true
+      required: true,
     },
 
     image: {
       type: String,
-      required: true
+      required: true,
     },
 
     /* ===== Verification ===== */
 
     isVerified: {
       type: Boolean,
-      default: true
+      default: true,
     },
 
     /* ===== Company Info ===== */
@@ -75,12 +75,12 @@ const companySchema = new mongoose.Schema(
     address: {
       type: String,
       default: "",
-      trim: true
+      trim: true,
     },
 
     founded: {
       type: Number,
-      default: null
+      default: null,
     },
 
     /* ===== CEO ===== */
@@ -88,24 +88,36 @@ const companySchema = new mongoose.Schema(
     ceoName: {
       type: String,
       default: "",
-      trim: true
+      trim: true,
     },
 
     ceoPhoto: {
       type: String,
-      default: null
+      default: null,
+    },
+
+    /* ===== Forgot Password ===== */
+
+    resetOtp: {
+      type: String,
+      default: null,
+    },
+
+    resetOtpExpire: {
+      type: Number,
+      default: null,
     },
 
     /* ===== Employees ===== */
 
     employees: {
       type: [employeeSchema],
-      default: []
-    }
+      default: [],
+    },
   },
   {
-    timestamps: true
-  }
+    timestamps: true,
+  },
 );
 
 /* ================= MODEL ================= */

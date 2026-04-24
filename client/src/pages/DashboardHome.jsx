@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useMemo } from "react";
 import { AppContext } from "../context/AppContext";
 import {
   Briefcase,
@@ -10,28 +10,66 @@ import {
 } from "lucide-react";
 
 const DashboardHome = () => {
-  const { companyData } = useContext(AppContext);
+  const {
+    companyData,
+    companyJobs = [],
+    applicants = [],
+  } = useContext(AppContext);
 
-  const stats = {
-    totalJobs: 12,
-    activeJobs: 9,
-    hiddenJobs: 3,
-    totalApplicants: 48,
-    pending: 14,
-    accepted: 20,
-    rejected: 14,
-  };
+  /* =====================================================
+     ORIGINAL DATABASE DATA BASED STATS
+  ===================================================== */
+
+  const stats = useMemo(() => {
+    const totalJobs = companyJobs.length;
+
+    const activeJobs = companyJobs.filter(
+      (job) => job.visible === true
+    ).length;
+
+    const hiddenJobs = companyJobs.filter(
+      (job) => job.visible === false
+    ).length;
+
+    const totalApplicants = applicants.length;
+
+    const pending = applicants.filter(
+      (item) =>
+        item.status?.toLowerCase() === "pending"
+    ).length;
+
+    const accepted = applicants.filter(
+      (item) =>
+        item.status?.toLowerCase() === "accepted"
+    ).length;
+
+    const rejected = applicants.filter(
+      (item) =>
+        item.status?.toLowerCase() === "rejected"
+    ).length;
+
+    return {
+      totalJobs,
+      activeJobs,
+      hiddenJobs,
+      totalApplicants,
+      pending,
+      accepted,
+      rejected,
+    };
+  }, [companyJobs, applicants]);
 
   return (
     <div className="space-y-8">
 
-      {/* HERO SECTION */}
+      {/* HERO */}
       <div className="flex flex-col md:flex-row items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-8 rounded-2xl shadow-lg">
 
         <div>
           <h2 className="text-3xl font-bold mb-2">
-            Welcome back, {companyData?.name}
+            Welcome back, {companyData?.name || "Company"}
           </h2>
+
           <p className="opacity-90 text-sm">
             Manage your jobs and applicants easily.
           </p>
@@ -48,7 +86,7 @@ const DashboardHome = () => {
         )}
       </div>
 
-      {/* STAT CARDS */}
+      {/* TOP STATS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
         <StatCard
@@ -84,13 +122,14 @@ const DashboardHome = () => {
         />
       </div>
 
-      {/* JOB STATUS */}
+      {/* LOWER SECTION */}
       <div className="grid md:grid-cols-2 gap-8">
 
-        {/* Job Visibility */}
+        {/* JOB VISIBILITY */}
         <div className="bg-white rounded-2xl shadow-md p-6">
           <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
-            <BarChart3 size={20} /> Job Visibility
+            <BarChart3 size={20} />
+            Job Visibility
           </h3>
 
           <ProgressBar
@@ -108,10 +147,11 @@ const DashboardHome = () => {
           />
         </div>
 
-        {/* Applications */}
+        {/* APPLICATION STATUS */}
         <div className="bg-white rounded-2xl shadow-md p-6">
           <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
-            <Users size={20} /> Applications
+            <Users size={20} />
+            Applications
           </h3>
 
           <StatusItem
@@ -136,28 +176,38 @@ const DashboardHome = () => {
           />
         </div>
       </div>
-
     </div>
   );
 };
 
 export default DashboardHome;
 
-
-/* COMPONENTS */
+/* =====================================================
+   COMPONENTS
+===================================================== */
 
 const StatCard = ({ icon, title, value, bg, text }) => (
-  <div className="bg-white p-6 rounded-2xl shadow-md hover:shadow-lg transition">
-    <div className={`w-10 h-10 flex items-center justify-center rounded-lg ${bg} ${text} mb-4`}>
+  <div className="bg-white p-6 rounded-2xl shadow-md hover:shadow-lg transition duration-300">
+    <div
+      className={`w-10 h-10 flex items-center justify-center rounded-lg ${bg} ${text} mb-4`}
+    >
       {icon}
     </div>
+
     <p className="text-gray-500 text-sm">{title}</p>
+
     <h3 className="text-3xl font-bold mt-2">{value}</h3>
   </div>
 );
 
-const ProgressBar = ({ label, value, total, color }) => {
-  const percentage = total ? (value / total) * 100 : 0;
+const ProgressBar = ({
+  label,
+  value,
+  total,
+  color,
+}) => {
+  const percentage =
+    total > 0 ? (value / total) * 100 : 0;
 
   return (
     <div className="mb-5">
@@ -166,22 +216,32 @@ const ProgressBar = ({ label, value, total, color }) => {
         <span>{value}</span>
       </div>
 
-      <div className="w-full bg-gray-200 h-2 rounded-full">
+      <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
         <div
           className={`${color} h-2 rounded-full`}
-          style={{ width: `${percentage}%` }}
+          style={{
+            width: `${percentage}%`,
+          }}
         />
       </div>
     </div>
   );
 };
 
-const StatusItem = ({ icon, label, count, color }) => (
+const StatusItem = ({
+  icon,
+  label,
+  count,
+  color,
+}) => (
   <div className="flex justify-between items-center bg-gray-50 p-3 rounded-lg mb-3">
     <div className={`flex items-center gap-2 ${color}`}>
       {icon}
       <span>{label}</span>
     </div>
-    <span className="font-semibold">{count}</span>
+
+    <span className="font-semibold">
+      {count}
+    </span>
   </div>
 );

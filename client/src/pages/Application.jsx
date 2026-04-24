@@ -111,7 +111,7 @@ const Application = () => {
           ) : (
             <div className="flex gap-2">
               <a
-                href={userData?.resume}
+                href={`https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(userData?.resume)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-blue-100 text-blue-600 px-4 py-2 rounded-lg"

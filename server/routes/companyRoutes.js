@@ -11,7 +11,10 @@ import {
   changeApplicationStatus,
   changeVisibility,
   updateCompanyProfile,
-  updateCompanyEmployees
+  updateCompanyEmployees,
+  forgotPassword,
+  verifyResetOtp,
+  resetPassword
 } from "../controller/companyController.js";
 
 import upload from "../config/multer.js";
@@ -19,7 +22,6 @@ import { protectCompany } from "../middleware/authMiddleware.js";
 import Company from "../models/Company.js";
 
 const router = express.Router();
-
 
 /* ================= AUTH ROUTES ================= */
 
@@ -39,6 +41,22 @@ router.post(
   companyLogin
 );
 
+/* ================= FORGOT PASSWORD ================= */
+
+router.post(
+  "/forgot-password",
+  forgotPassword
+);
+
+router.post(
+  "/verify-reset-otp",
+  verifyResetOtp
+);
+
+router.post(
+  "/reset-password",
+  resetPassword
+);
 
 /* ================= COMPANY DATA ================= */
 
@@ -47,7 +65,6 @@ router.get(
   protectCompany,
   getCompanyData
 );
-
 
 /* ================= COMPANY PROFILE ================= */
 
@@ -58,7 +75,6 @@ router.post(
   updateCompanyProfile
 );
 
-
 /* ================= COMPANY EMPLOYEES ================= */
 
 router.post(
@@ -67,7 +83,6 @@ router.post(
   upload.array("employeePhotos", 20),
   updateCompanyEmployees
 );
-
 
 /* ================= JOB MANAGEMENT ================= */
 
@@ -89,7 +104,6 @@ router.get(
   getJobApplicants
 );
 
-
 /* ================= JOB ACTIONS ================= */
 
 router.post(
@@ -104,26 +118,29 @@ router.post(
   changeVisibility
 );
 
-
 /* ================= PUBLIC COMPANY ROUTES ================= */
 
-// Get all companies
+/* Get all companies */
 router.get("/", async (req, res) => {
   try {
     const companies = await Company.find().select("-password");
     res.json(companies);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      message: error.message
+    });
   }
 });
 
-// Get single company
+/* Get single company */
 router.get("/:id", async (req, res) => {
   try {
     const company = await Company.findById(req.params.id).select("-password");
     res.json(company);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      message: error.message
+    });
   }
 });
 

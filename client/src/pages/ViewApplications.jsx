@@ -5,7 +5,6 @@ import { toast } from "react-toastify";
 import Loading from "../components/Loading";
 
 const ViewApplications = () => {
-
   const { backendUrl, companyToken } = useContext(AppContext);
 
   const [applicants, setApplicants] = useState([]);
@@ -17,83 +16,58 @@ const ViewApplications = () => {
   /* ================= FETCH APPLICATIONS ================= */
 
   const fetchCompanyApplications = async () => {
-
     try {
-
       setLoading(true);
 
-      const { data } = await axios.get(
-        `${backendUrl}/api/company/applicants`,
-        {
-          headers: { token: companyToken }
-        }
-      );
+      const { data } = await axios.get(`${backendUrl}/api/company/applicants`, {
+        headers: { token: companyToken },
+      });
 
       if (data.success) {
         setApplicants(data.applications.reverse());
       } else {
         toast.error(data.message);
       }
-
     } catch (error) {
-
       toast.error(error.message);
-
     } finally {
-
       setLoading(false);
-
     }
-
   };
 
   /* ================= CHANGE STATUS ================= */
 
   const changeJobApplicationStatus = async (id, status) => {
-
     try {
-
       const { data } = await axios.post(
         `${backendUrl}/api/company/change-status`,
         { id, status },
         {
-          headers: { token: companyToken }
-        }
+          headers: { token: companyToken },
+        },
       );
 
       if (data.success) {
-
         fetchCompanyApplications();
         toast.success(`Application ${status}`);
-
       } else {
-
         toast.error(data.message);
-
       }
-
     } catch (error) {
-
       toast.error(error.message);
-
     }
-
   };
 
   useEffect(() => {
-
     if (companyToken) {
       fetchCompanyApplications();
     }
-
   }, [companyToken]);
 
   /* ================= FILTER LOGIC ================= */
 
   const filteredApplicants = useMemo(() => {
-
     return applicants.filter((app) => {
-
       const title = app.jobId?.title?.toLowerCase() || "";
       const location = app.jobId?.location?.toLowerCase() || "";
 
@@ -105,9 +79,7 @@ const ViewApplications = () => {
         statusFilter === "All" || app.status === statusFilter;
 
       return matchesSearch && matchesStatus;
-
     });
-
   }, [applicants, searchTerm, statusFilter]);
 
   /* ================= LOADING ================= */
@@ -115,16 +87,11 @@ const ViewApplications = () => {
   if (loading) return <Loading />;
 
   return (
-
     <div className="container mx-auto px-4 py-6">
-
       {/* HEADER */}
 
       <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
-
-        <h2 className="text-2xl font-bold text-gray-800">
-          Job Applications
-        </h2>
+        <h2 className="text-2xl font-bold text-gray-800">Job Applications</h2>
 
         <input
           type="text"
@@ -133,15 +100,12 @@ const ViewApplications = () => {
           onChange={(e) => setSearchTerm(e.target.value)}
           className="border rounded-lg px-4 py-2 w-full md:w-72 focus:ring-2 focus:ring-blue-400 outline-none"
         />
-
       </div>
 
       {/* STATUS FILTER */}
 
       <div className="flex gap-3 mb-6 flex-wrap">
-
         {["All", "Pending", "Accepted", "Rejected"].map((status) => (
-
           <button
             key={status}
             onClick={() => setStatusFilter(status)}
@@ -154,27 +118,19 @@ const ViewApplications = () => {
           >
             {status}
           </button>
-
         ))}
-
       </div>
 
       {/* EMPTY STATE */}
 
       {filteredApplicants.length === 0 ? (
-
         <div className="text-center py-16 text-gray-500 bg-white rounded-xl shadow">
           No Applications Found
         </div>
-
       ) : (
-
         <div className="overflow-x-auto bg-white rounded-xl shadow">
-
           <table className="w-full text-sm text-left">
-
             <thead className="bg-gray-50 border-b">
-
               <tr>
                 <th className="py-3 px-4">#</th>
                 <th className="py-3 px-4">Applicant</th>
@@ -183,30 +139,22 @@ const ViewApplications = () => {
                 <th className="py-3 px-4">Resume</th>
                 <th className="py-3 px-4">Status</th>
               </tr>
-
             </thead>
 
             <tbody>
-
               {filteredApplicants.map((applicant, index) => (
-
                 <tr
                   key={applicant._id}
                   className="border-b hover:bg-gray-50 transition"
                 >
-
                   {/* NUMBER */}
 
-                  <td className="px-4 py-3">
-                    {index + 1}
-                  </td>
+                  <td className="px-4 py-3">{index + 1}</td>
 
                   {/* USER */}
 
                   <td className="px-4 py-3">
-
                     <div className="flex items-center gap-3">
-
                       <img
                         src={applicant.image || "/default-avatar.png"}
                         className="w-9 h-9 rounded-full object-cover"
@@ -214,7 +162,6 @@ const ViewApplications = () => {
                       />
 
                       <div className="flex flex-col">
-
                         <span className="font-medium text-gray-800">
                           {applicant.name || "Unknown User"}
                         </span>
@@ -222,11 +169,8 @@ const ViewApplications = () => {
                         <span className="text-xs text-gray-500">
                           {applicant.email || "No Email"}
                         </span>
-
                       </div>
-
                     </div>
-
                   </td>
 
                   {/* JOB TITLE */}
@@ -244,41 +188,30 @@ const ViewApplications = () => {
                   {/* RESUME */}
 
                   <td className="px-4 py-3">
-
                     {applicant.resume ? (
-
                       <a
-                        href={applicant.resume}
+                        href={`https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(applicant.resume)}`}
                         target="_blank"
                         rel="noreferrer"
                         className="text-blue-600 hover:underline"
                       >
                         View Resume
                       </a>
-
                     ) : (
-
-                      <span className="text-gray-400">
-                        Not Uploaded
-                      </span>
-
+                      <span className="text-gray-400">Not Uploaded</span>
                     )}
-
                   </td>
 
                   {/* STATUS */}
 
                   <td className="px-4 py-3">
-
                     {applicant.status === "Pending" ? (
-
                       <div className="flex gap-2">
-
                         <button
                           onClick={() =>
                             changeJobApplicationStatus(
                               applicant._id,
-                              "Accepted"
+                              "Accepted",
                             )
                           }
                           className="px-3 py-1 text-xs bg-green-100 text-green-700 rounded-full hover:bg-green-200 transition"
@@ -290,18 +223,15 @@ const ViewApplications = () => {
                           onClick={() =>
                             changeJobApplicationStatus(
                               applicant._id,
-                              "Rejected"
+                              "Rejected",
                             )
                           }
                           className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded-full hover:bg-red-200 transition"
                         >
                           Reject
                         </button>
-
                       </div>
-
                     ) : (
-
                       <span
                         className={`px-3 py-1 rounded-full text-xs font-medium
                         ${
@@ -312,27 +242,16 @@ const ViewApplications = () => {
                       >
                         {applicant.status}
                       </span>
-
                     )}
-
                   </td>
-
                 </tr>
-
               ))}
-
             </tbody>
-
           </table>
-
         </div>
-
       )}
-
     </div>
-
   );
-
 };
 
 export default ViewApplications;

@@ -508,3 +508,128 @@ export const getCompanyById = async (req, res) => {
 
   }
 };
+
+/* ================= FORGOT PASSWORD ================= */
+
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const company = await Company.findOne({ email });
+
+    if (!company) {
+      return res.json({
+        success: false,
+        message: "Company not found",
+      });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    company.resetOtp = otp;
+    company.resetOtpExpire = Date.now() + 10 * 60 * 1000;
+
+    await company.save();
+
+    await sendEmail(
+      email,
+      "HireSphere Password Reset OTP",
+      otp
+    );
+
+    res.json({
+      success: true,
+      message: "OTP sent successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+/* ================= VERIFY RESET OTP ================= */
+
+export const verifyResetOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    const company = await Company.findOne({ email });
+
+    if (!company) {
+      return res.json({
+        success: false,
+        message: "Company not found",
+      });
+    }
+
+    if (!company.resetOtp) {
+      return res.json({
+        success: false,
+        message: "OTP not generated",
+      });
+    }
+
+    if (company.resetOtpExpire < Date.now()) {
+      return res.json({
+        success: false,
+        message: "OTP expired",
+      });
+    }
+
+    if (company.resetOtp.toString() !== otp.toString()) {
+      return res.json({
+        success: false,
+        message: "Invalid OTP",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "OTP verified",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+/* ================= RESET PASSWORD ================= */
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const company = await Company.findOne({ email });
+
+    if (!company) {
+      return res.json({
+        success: false,
+        message: "Company not found",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    company.password = hashedPassword;
+    company.resetOtp = null;
+    company.resetOtpExpire = null;
+
+    await company.save();
+
+    res.json({
+      success: true,
+      message: "Password updated successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

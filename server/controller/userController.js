@@ -3,6 +3,7 @@ import Job from "../models/Job.js";
 import JobApplication from "../models/JobApplication.js";
 import { v2 as cloudinary } from "cloudinary";
 import { clerkClient } from "@clerk/express";
+import streamifier from "streamifier";
 
 /* ================= GET USER DATA ================= */
 
@@ -219,30 +220,36 @@ export const getUserJobApplications = async (req, res) => {
 /* ================= UPDATE USER RESUME ================= */
 
 export const updateUserResume = async (req, res) => {
-
   try {
-
     const clerkId = req.auth.userId;
     const resumeFile = req.file;
 
     if (!resumeFile) {
       return res.json({
         success: false,
-        message: "No file uploaded"
+        message: "No file uploaded",
       });
     }
 
-    const resumeUpload = await cloudinary.uploader.upload(
-      resumeFile.path,
-      {
-        folder: "hiresphere_resumes"
-      }
-    );
+    const resumeUpload = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        {
+          resource_type: "raw",
+          folder: "hiresphere_resumes",
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+
+      streamifier.createReadStream(resumeFile.buffer).pipe(stream);
+    });
 
     const user = await User.findOneAndUpdate(
       { clerkId },
       {
-        resume: resumeUpload.secure_url
+        resume: resumeUpload.secure_url,
       },
       { new: true }
     );
@@ -250,16 +257,12 @@ export const updateUserResume = async (req, res) => {
     return res.json({
       success: true,
       message: "Resume updated successfully",
-      user
+      user,
     });
-
   } catch (error) {
-
     return res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
-
   }
-
 };

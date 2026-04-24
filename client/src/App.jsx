@@ -13,17 +13,20 @@ import AddJob from "./pages/AddJob";
 import ManageJobs from "./pages/ManageJobs";
 import ViewApplications from "./pages/ViewApplications";
 
-import { AppContext } from "./context/AppContext";
-
-import "quill/dist/quill.snow.css";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-
 import CompanyProfile from "./pages/CompanyProfile";
 import CompanyEmployees from "./pages/CompanyEmployees";
 
 import AboutCompanies from "./pages/AboutCompanies";
 import CompanyShow from "./pages/CompanyShow";
+
+import Analytics from "./pages/Analytics";
+import Settings from "./pages/Settings";
+
+import { AppContext } from "./context/AppContext";
+
+import "quill/dist/quill.snow.css";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 /* ================= PROTECTED ROUTE ================= */
 
@@ -45,13 +48,12 @@ const App = () => {
   const { showRecruiterLogin } = useContext(AppContext);
 
   return (
-    <div>
+    <>
       {showRecruiterLogin && <RecruiterLogin />}
 
       <ToastContainer />
 
       <Routes>
-
         {/* ================= PUBLIC ROUTES ================= */}
 
         <Route path="/" element={<Home />} />
@@ -59,8 +61,6 @@ const App = () => {
         <Route path="/apply-job/:id" element={<ApplyJob />} />
 
         <Route path="/applications" element={<Application />} />
-
-        {/* Companies Public Pages */}
 
         <Route path="/companies" element={<AboutCompanies />} />
 
@@ -76,12 +76,11 @@ const App = () => {
             </RecruiterProtectedRoute>
           }
         >
-          {/* Dashboard Home */}
+          {/* Home */}
           <Route index element={<DashboardHome />} />
 
           {/* Jobs */}
           <Route path="add-jobs" element={<AddJob />} />
-
           <Route path="manage-jobs" element={<ManageJobs />} />
 
           {/* Applications */}
@@ -89,17 +88,21 @@ const App = () => {
 
           {/* Company */}
           <Route path="profile" element={<CompanyProfile />} />
+          <Route
+            path="company-employees"
+            element={<CompanyEmployees />}
+          />
 
-          {/* Employees */}
-          <Route path="company-employees" element={<CompanyEmployees />} />
+          {/* New Pages */}
+          <Route path="analytics" element={<Analytics />} />
+          <Route path="settings" element={<Settings />} />
         </Route>
 
         {/* ================= FALLBACK ================= */}
 
-        <Route path="*" element={<Navigate to="/" />} />
-
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </div>
+    </>
   );
 };
 
