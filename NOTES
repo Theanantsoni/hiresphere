@@ -117,4 +117,12 @@ Recruiter Login forget password using email otp verification and create new pass
 
 Analytics & Setting Page / Reset Password from Setting for Recruiter Complete - 25-04-26
 
+Windows DNS flush karo:
+
+ipconfig /flushdns
+
+phir:
+
+ipconfig /registerdns
+
 
