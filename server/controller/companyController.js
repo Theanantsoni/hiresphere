@@ -513,39 +513,66 @@ export const getCompanyById = async (req, res) => {
 
 export const forgotPassword = async (req, res) => {
   try {
+    console.log("========== FORGOT PASSWORD ==========");
+
     const { email } = req.body;
+    console.log("📧 Email:", email);
 
     const company = await Company.findOne({ email });
 
     if (!company) {
+      console.log("❌ Company not found");
+
       return res.json({
         success: false,
         message: "Company not found",
       });
     }
 
+    console.log("✅ Company Found:", company.email);
+
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    console.log("🔐 Generated OTP:", otp);
 
     company.resetOtp = otp;
     company.resetOtpExpire = Date.now() + 10 * 60 * 1000;
 
     await company.save();
 
-    await sendEmail(
+    console.log("✅ OTP Saved In MongoDB");
+
+    console.log("📤 Calling sendEmail()...");
+
+    const info = await sendEmail(
       email,
       "HireSphere Password Reset OTP",
       otp
     );
 
-    res.json({
+    console.log("✅ sendEmail() Success");
+    console.log("Message ID:", info.messageId);
+    console.log("Accepted:", info.accepted);
+    console.log("Rejected:", info.rejected);
+    console.log("Response:", info.response);
+
+    console.log("========== DONE ==========");
+
+    return res.json({
       success: true,
       message: "OTP sent successfully",
     });
+
   } catch (error) {
-    res.status(500).json({
+
+    console.error("❌ Forgot Password Error");
+    console.error(error);
+
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
+
   }
 };
 

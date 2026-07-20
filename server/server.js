@@ -109,6 +109,25 @@ if (!process.env.VERCEL) {
 
 }
 
+
+app.get("/test-email", async (req, res) => {
+  try {
+    const sendEmail = (await import("./utils/sendEmail.js")).default;
+
+    await sendEmail(
+      "mranantsoni7@gmail.com",
+      "Test Email",
+      "123456"
+    );
+
+    res.send("Email Sent");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err.message);
+  }
+});
+
+
 /* ================= EXPORT ================= */
 
 export default app;
