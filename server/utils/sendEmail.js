@@ -65,7 +65,23 @@ This is an automated email from HireSphere.
 
 const sendEmail = async (to, subject, otp) => {
   try {
-    console.log("📧 Sending email to:", to);
+    console.log("=================================");
+    console.log("📧 Sending Email");
+    console.log("To:", to);
+
+    console.log(
+      "BREVO KEY EXISTS:",
+      !!process.env.BREVO_API_KEY
+    );
+
+    console.log(
+      "BREVO KEY PREFIX:",
+      process.env.BREVO_API_KEY?.substring(0, 10)
+    );
+
+    if (!process.env.BREVO_API_KEY) {
+      throw new Error("BREVO_API_KEY is missing.");
+    }
 
     const result = await tranEmailApi.sendTransacEmail({
       sender: {
@@ -85,12 +101,24 @@ const sendEmail = async (to, subject, otp) => {
     });
 
     console.log("✅ Email Sent Successfully");
-    console.log(result);
+    console.log("Message ID:", result.messageId);
 
     return result;
   } catch (err) {
-    console.error("❌ Email Error");
-    console.error(err.response?.body || err);
+    console.log("=================================");
+    console.error("❌ BREVO EMAIL ERROR");
+
+    if (err.response?.body) {
+      console.error("Response Body:");
+      console.error(err.response.body);
+    }
+
+    if (err.response?.text) {
+      console.error("Response Text:");
+      console.error(err.response.text);
+    }
+
+    console.error(err);
 
     throw err;
   }
