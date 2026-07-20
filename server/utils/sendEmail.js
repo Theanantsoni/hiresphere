@@ -3,14 +3,14 @@ import nodemailer from "nodemailer";
 /* ================= TRANSPORT ================= */
 
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
-  family: 4, // Force IPv4
+  service: "gmail",
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
+  connectionTimeout: 30000,
+  greetingTimeout: 30000,
+  socketTimeout: 30000,
 });
 
 /* ================= VERIFY SMTP ================= */
