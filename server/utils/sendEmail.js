@@ -1,35 +1,13 @@
-import nodemailer from "nodemailer";
+import SibApiV3Sdk from "sib-api-v3-sdk";
 
-/* ================= TRANSPORT ================= */
+/* ================= CLIENT ================= */
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-  connectionTimeout: 30000,
-  greetingTimeout: 30000,
-  socketTimeout: 30000,
-});
+const client = SibApiV3Sdk.ApiClient.instance;
 
-/* ================= VERIFY SMTP ================= */
+const apiKey = client.authentications["api-key"];
+apiKey.apiKey = process.env.BREVO_API_KEY;
 
-(async () => {
-  try {
-    console.log("SMTP_USER:", process.env.SMTP_USER);
-    console.log(
-      "SMTP_PASS:",
-      process.env.SMTP_PASS ? "Loaded" : "Missing"
-    );
-
-    await transporter.verify();
-
-    console.log("✅ SMTP Connected Successfully");
-  } catch (error) {
-    console.error("❌ SMTP Verify Error:", error);
-  }
-})();
+const tranEmailApi = new SibApiV3Sdk.TransactionalEmailsApi();
 
 /* ================= EMAIL TEMPLATE ================= */
 
@@ -89,25 +67,32 @@ const sendEmail = async (to, subject, otp) => {
   try {
     console.log("📧 Sending email to:", to);
 
-    const info = await transporter.sendMail({
-      from: `"HireSphere" <${process.env.SMTP_USER}>`,
-      to,
+    const result = await tranEmailApi.sendTransacEmail({
+      sender: {
+        name: "HireSphere",
+        email: "mranantsoni7@gmail.com",
+      },
+
+      to: [
+        {
+          email: to,
+        },
+      ],
+
       subject,
-      html: generateOTPTemplate(otp),
+
+      htmlContent: generateOTPTemplate(otp),
     });
 
     console.log("✅ Email Sent Successfully");
-    console.log("Accepted:", info.accepted);
-    console.log("Rejected:", info.rejected);
-    console.log("Message ID:", info.messageId);
-    console.log("Response:", info.response);
+    console.log(result);
 
-    return info;
-  } catch (error) {
-    console.error("❌ Email Send Error");
-    console.error(error);
+    return result;
+  } catch (err) {
+    console.error("❌ Email Error");
+    console.error(err.response?.body || err);
 
-    throw error;
+    throw err;
   }
 };
 

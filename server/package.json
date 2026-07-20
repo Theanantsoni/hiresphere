@@ -26,8 +26,8 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.2.1",
     "multer": "^2.1.1",
-    "nodemailer": "^8.0.1",
     "nodemon": "^3.1.11",
+    "sib-api-v3-sdk": "^8.5.0",
     "streamifier": "^0.1.1",
     "svix": "^1.85.0"
   }

@@ -60,6 +60,31 @@ app.get("/", (req, res) => {
   res.status(200).send("API Working");
 });
 
+/* ================= TEST EMAIL ================= */
+/* Clerk middleware se pehle hona chahiye */
+
+app.get("/test-email", async (req, res) => {
+  try {
+    const sendEmail = (await import("./utils/sendEmail.js")).default;
+
+    await sendEmail(
+      "mranantsoni7@gmail.com",
+      "Test Email",
+      "123456"
+    );
+
+    res.status(200).send("Email Sent Successfully");
+  } catch (err) {
+    console.error("❌ Test Email Error:");
+    console.error(err);
+
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+});
+
 /* ================= SENTRY TEST ================= */
 
 app.get("/debug-sentry", () => {
@@ -87,46 +112,23 @@ Sentry.setupExpressErrorHandler(app);
 /* ================= GLOBAL ERROR HANDLER ================= */
 
 app.use((err, req, res, next) => {
-
   console.error("SERVER ERROR:", err);
 
   res.status(500).json({
     success: false,
     message: err.message || "Internal Server Error",
   });
-
 });
 
 /* ================= SERVER START ================= */
 
 if (!process.env.VERCEL) {
-
   const PORT = process.env.PORT || 5000;
 
   app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
   });
-
 }
-
-
-app.get("/test-email", async (req, res) => {
-  try {
-    const sendEmail = (await import("./utils/sendEmail.js")).default;
-
-    await sendEmail(
-      "mranantsoni7@gmail.com",
-      "Test Email",
-      "123456"
-    );
-
-    res.send("Email Sent");
-  } catch (err) {
-    console.error(err);
-    res.status(500).send(err.message);
-  }
-});
-
 
 /* ================= EXPORT ================= */
 
