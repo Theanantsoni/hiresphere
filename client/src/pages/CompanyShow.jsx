@@ -21,7 +21,9 @@ const CompanyShow = () => {
   useEffect(() => {
     const fetchCompany = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/company/${id}`);
+        const res = await fetch(
+  `${import.meta.env.VITE_BACKEND_URL}/api/company/${id}`
+);
         const data = await res.json();
 
         const companyData = data.company || data;

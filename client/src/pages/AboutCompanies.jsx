@@ -14,7 +14,9 @@ const AboutCompanies = () => {
   useEffect(() => {
     const fetchCompanies = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/company");
+        const res = await fetch(
+  `${import.meta.env.VITE_BACKEND_URL}/api/company`
+);
         const data = await res.json();
         setCompanies(data);
       } catch (error) {
