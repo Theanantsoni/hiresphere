@@ -20,11 +20,15 @@ https://hiresphere-5qpd.onrender.com/
 
 ---
 
-Candidate Screenshots (PDF) : https://github.com/Theanantsoni/hiresphere/blob/master/HireSphere%20-%20Candidate%20Portal.pdf
+Candidate Screenshots (PDF) : 
+
+https://github.com/Theanantsoni/hiresphere/blob/master/HireSphere%20-%20Candidate%20Portal.pdf
 
 ---
 
-Recruiter Screenshots (PDF) : https://github.com/Theanantsoni/hiresphere/blob/master/HireSphere%20-%20Recruiter%20Portal.pdf
+Recruiter Screenshots (PDF) : 
+
+https://github.com/Theanantsoni/hiresphere/blob/master/HireSphere%20-%20Recruiter%20Portal.pdf
 
 ---
 
@@ -34,15 +38,11 @@ Anant Soni
 
 MCA Graduate | MERN Stack Developer
 
-Portfolio
+🌐 Portfolio
 
 https://anantsoni-portfolio.vercel.app
 
-GitHub
-
-https://github.com/theanantsoni
-
-LinkedIn
+🔗 LinkedIn
 
 https://www.linkedin.com/in/anant-soni-b737662a2/
 
@@ -521,12 +521,6 @@ npm install
 
 npm start
 ```
-
----
-
-🔗 LinkedIn
-
-https://www.linkedin.com/in/anant-soni-b737662a2/
 
 ---
 
